@@ -27,7 +27,7 @@ RUN_REPORTING=false
 RUN_CONFIGDB=false
 RUN_FACTORY=false
 RUN_OBJECTIONS=false
-RUN_PYUVM_TESTS=false
+RUN_PYUVM_TESTS=true
 USE_VENV=true
 SIMULATOR="verilator"
 
@@ -142,9 +142,9 @@ check_prerequisites() {
     print_status $GREEN "Prerequisites check passed"
 }
 
-# Function to run Python example (syntax check)
+# Function to run Python example (run with cocotb)
 run_python_example() {
-    local example_file=$1
+    local example_dir=$1
     local example_name=$2
     
     print_header "Running: $example_name"
@@ -153,13 +153,23 @@ run_python_example() {
         source "$VENV_DIR/bin/activate"
     fi
     
-    # Check syntax only (don't execute, as these are structural examples)
-    if python3 -m py_compile "$example_file" 2>&1; then
-        print_status $GREEN "✓ $example_name syntax check passed"
-        print_status $YELLOW "Note: This is a structural example. Run with cocotb for full simulation."
+    # Check if Makefile exists
+    if [[ ! -f "$MODULE3_DIR/examples/$example_dir/Makefile" ]]; then
+        print_status $RED "✗ Makefile not found for $example_name"
+        return 1
+    fi
+    
+    # Run with cocotb using make
+    cd "$MODULE3_DIR/examples/$example_dir"
+    
+    print_status $BLUE "Running pyuvm test for $example_name..."
+    if make SIM="$SIMULATOR" 2>&1 | tee "/tmp/pyuvm_${example_dir}.log"; then
+        print_status $GREEN "✓ $example_name completed successfully"
+        cd "$PROJECT_ROOT"
         return 0
     else
-        print_status $RED "✗ $example_name syntax check failed"
+        print_status $RED "✗ $example_name failed"
+        cd "$PROJECT_ROOT"
         return 1
     fi
 }
@@ -299,56 +309,42 @@ main() {
        [[ "$RUN_REPORTING" == true ]] || [[ "$RUN_CONFIGDB" == true ]] || \
        [[ "$RUN_FACTORY" == true ]] || [[ "$RUN_OBJECTIONS" == true ]]; then
         
-        print_header "UVM Examples"
-        print_status $YELLOW "Note: Examples are pyuvm structural examples."
-        print_status $YELLOW "They demonstrate UVM patterns and can be used in testbenches."
+        print_header "Running UVM Examples"
         
         if [[ "$RUN_CLASS_HIERARCHY" == true ]]; then
-            cd "$MODULE3_DIR/examples/class_hierarchy"
-            if ! run_python_example "class_hierarchy_example.py" "Class Hierarchy"; then
+            if ! run_python_example "class_hierarchy" "Class Hierarchy"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_PHASES" == true ]]; then
-            cd "$MODULE3_DIR/examples/phases"
-            if ! run_python_example "phases_example.py" "UVM Phases"; then
+            if ! run_python_example "phases" "UVM Phases"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_REPORTING" == true ]]; then
-            cd "$MODULE3_DIR/examples/reporting"
-            if ! run_python_example "reporting_example.py" "UVM Reporting"; then
+            if ! run_python_example "reporting" "UVM Reporting"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_CONFIGDB" == true ]]; then
-            cd "$MODULE3_DIR/examples/configdb"
-            if ! run_python_example "configdb_example.py" "ConfigDB"; then
+            if ! run_python_example "configdb" "ConfigDB"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_FACTORY" == true ]]; then
-            cd "$MODULE3_DIR/examples/factory"
-            if ! run_python_example "factory_example.py" "Factory Pattern"; then
+            if ! run_python_example "factory" "Factory Pattern"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_OBJECTIONS" == true ]]; then
-            cd "$MODULE3_DIR/examples/objections"
-            if ! run_python_example "objections_example.py" "Objections"; then
+            if ! run_python_example "objections" "Objections"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
     fi
     

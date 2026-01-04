@@ -3,6 +3,8 @@ Module 3 Example: Objection Mechanism
 Demonstrates UVM objection mechanism for test control.
 """
 
+import cocotb
+from cocotb.triggers import Timer
 from pyuvm import *
 
 
@@ -17,7 +19,7 @@ class ObjectionComponent(uvm_component):
         self.logger.info(f"[{self.get_name()}] Raised objection")
         
         # Simulate work
-        await Timer(50, units="ns")
+        await Timer(50, unit="ns")
         self.logger.info(f"[{self.get_name()}] Work completed")
         
         self.drop_objection()
@@ -36,13 +38,13 @@ class MultipleObjectionsComponent(uvm_component):
         self.raise_objection()
         self.logger.info(f"[{self.get_name()}] Raised 2 objections")
         
-        await Timer(30, units="ns")
+        await Timer(30, unit="ns")
         
         # Drop one objection
         self.drop_objection()
         self.logger.info(f"[{self.get_name()}] Dropped 1 objection, 1 remaining")
         
-        await Timer(20, units="ns")
+        await Timer(20, unit="ns")
         
         # Drop remaining objection
         self.drop_objection()
@@ -62,12 +64,12 @@ class ObjectionEnv(uvm_env):
         """Environment can also raise objections."""
         self.raise_objection()
         self.logger.info("[ObjectionEnv] Raised objection")
-        await Timer(100, units="ns")
+        await Timer(100, unit="ns")
         self.drop_objection()
         self.logger.info("[ObjectionEnv] Dropped objection")
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
 class ObjectionTest(uvm_test):
     """
     Test demonstrating objection mechanism.
@@ -88,7 +90,7 @@ class ObjectionTest(uvm_test):
         
         # Components will raise/drop their own objections
         # Simulation continues until all objections are dropped
-        await Timer(200, units="ns")
+        await Timer(200, unit="ns")
         
         self.logger.info("[Test] Dropping objection - simulation will end")
         self.drop_objection()
@@ -100,7 +102,7 @@ class ObjectionTest(uvm_test):
         self.logger.info("=" * 60)
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
 class ObjectionTimingTest(uvm_test):
     """
     Test demonstrating objection timing.
@@ -120,12 +122,33 @@ class ObjectionTimingTest(uvm_test):
         self.logger.info("Test started - objection raised")
         
         # Wait for components to complete
-        await Timer(150, units="ns")
+        await Timer(150, unit="ns")
         
         self.logger.info("All components should have dropped objections")
         self.logger.info("Dropping test objection - simulation will end")
         self.drop_objection()
 
+
+# Cocotb test functions to run the pyuvm tests
+@cocotb.test()
+async def test_objection(dut):
+    """Cocotb test wrapper for ObjectionTest."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["ObjectionTest"] = ObjectionTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("ObjectionTest")
+
+@cocotb.test()
+async def test_objection_timing(dut):
+    """Cocotb test wrapper for ObjectionTimingTest."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["ObjectionTimingTest"] = ObjectionTimingTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("ObjectionTimingTest")
 
 if __name__ == "__main__":
     print("This is a pyuvm objection example.")

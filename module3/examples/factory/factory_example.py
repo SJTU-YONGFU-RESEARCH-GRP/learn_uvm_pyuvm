@@ -3,6 +3,8 @@ Module 3 Example: Factory Pattern
 Demonstrates UVM factory pattern for object creation and overrides.
 """
 
+import cocotb
+from cocotb.triggers import Timer
 from pyuvm import *
 
 
@@ -33,7 +35,7 @@ class BaseDriver(uvm_driver):
     
     async def run_phase(self):
         self.logger.info(f"[BaseDriver] {self.get_name()}: Running base driver")
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
 
 
 class ExtendedDriver(BaseDriver):
@@ -41,7 +43,7 @@ class ExtendedDriver(BaseDriver):
     
     async def run_phase(self):
         self.logger.info(f"[ExtendedDriver] {self.get_name()}: Running extended driver")
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
 
 
 class FactoryAgent(uvm_agent):
@@ -62,7 +64,7 @@ class FactoryAgent(uvm_agent):
         self.logger.info("Running FactoryAgent")
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
 class FactoryTest(uvm_test):
     """
     Test demonstrating factory pattern.
@@ -102,7 +104,7 @@ class FactoryTest(uvm_test):
         ext_txn.address = 0x1000
         self.logger.info(f"Created: {ext_txn}")
         
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
         self.drop_objection()
     
     def report_phase(self):
@@ -112,7 +114,7 @@ class FactoryTest(uvm_test):
         self.logger.info("=" * 60)
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
 class FactoryOverrideTest(uvm_test):
     """
     Test demonstrating factory overrides.
@@ -135,9 +137,30 @@ class FactoryOverrideTest(uvm_test):
         """Run phase."""
         self.raise_objection()
         self.logger.info("Running FactoryOverrideTest")
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
         self.drop_objection()
 
+
+# Cocotb test functions to run the pyuvm tests
+@cocotb.test()
+async def test_factory(dut):
+    """Cocotb test wrapper for FactoryTest."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["FactoryTest"] = FactoryTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("FactoryTest")
+
+@cocotb.test()
+async def test_factory_override(dut):
+    """Cocotb test wrapper for FactoryOverrideTest."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["FactoryOverrideTest"] = FactoryOverrideTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("FactoryOverrideTest")
 
 if __name__ == "__main__":
     print("This is a pyuvm factory example.")

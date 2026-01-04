@@ -3,6 +3,8 @@ Module 3 Example 3.4: UVM ConfigDB
 Demonstrates UVM configuration database usage.
 """
 
+import cocotb
+from cocotb.triggers import Timer
 from pyuvm import *
 
 
@@ -83,7 +85,7 @@ class ConfigurableEnv(uvm_env):
         self.logger.info("Connecting ConfigurableEnv")
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
 class ConfigDBTest(uvm_test):
     """
     Test demonstrating ConfigDB usage.
@@ -115,7 +117,7 @@ class ConfigDBTest(uvm_test):
         if success:
             self.logger.info(f"Got config: {test_value}")
         
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
         self.drop_objection()
     
     def report_phase(self):
@@ -125,7 +127,7 @@ class ConfigDBTest(uvm_test):
         self.logger.info("=" * 60)
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
 class ConfigDBHierarchyTest(uvm_test):
     """
     Test demonstrating ConfigDB hierarchy.
@@ -168,9 +170,30 @@ class ConfigDBHierarchyTest(uvm_test):
         if ConfigDB().get(self, "env", "env_config", env_val):
             self.logger.info(f"  Env config: {env_val}")
         
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
         self.drop_objection()
 
+
+# Cocotb test functions to run the pyuvm tests
+@cocotb.test()
+async def test_configdb(dut):
+    """Cocotb test wrapper for ConfigDBTest."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["ConfigDBTest"] = ConfigDBTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("ConfigDBTest")
+
+@cocotb.test()
+async def test_configdb_hierarchy(dut):
+    """Cocotb test wrapper for ConfigDBHierarchyTest."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["ConfigDBHierarchyTest"] = ConfigDBHierarchyTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("ConfigDBHierarchyTest")
 
 if __name__ == "__main__":
     print("This is a pyuvm ConfigDB example.")

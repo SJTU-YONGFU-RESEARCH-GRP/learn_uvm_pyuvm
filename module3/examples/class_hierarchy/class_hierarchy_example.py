@@ -3,6 +3,8 @@ Module 3 Example 3.1: UVM Class Hierarchy
 Demonstrates UVM base classes and component hierarchy.
 """
 
+import cocotb
+from cocotb.triggers import Timer
 from pyuvm import *
 
 
@@ -65,7 +67,7 @@ class MyMonitor(uvm_monitor):
         """Run phase."""
         self.logger.info("Running MyMonitor")
         # Monitor would sample DUT signals here
-        await Timer(100, units="ns")
+        await Timer(100, unit="ns")
 
 
 class MyAgent(uvm_agent):
@@ -105,7 +107,8 @@ class MyEnv(uvm_env):
         self.logger.info("Connecting MyEnv")
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class ClassHierarchyTest(uvm_test):
     """
     Test class demonstrating UVM class hierarchy.
@@ -138,7 +141,7 @@ class ClassHierarchyTest(uvm_test):
         txn.address = 0x1000
         self.logger.info(f"Created transaction: {txn}")
         
-        await Timer(100, units="ns")
+        await Timer(100, unit="ns")
         self.drop_objection()
     
     def check_phase(self):
@@ -151,6 +154,17 @@ class ClassHierarchyTest(uvm_test):
         self.logger.info("ClassHierarchyTest completed")
         self.logger.info("=" * 60)
 
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_class_hierarchy(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["ClassHierarchyTest"] = ClassHierarchyTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("ClassHierarchyTest")
 
 if __name__ == "__main__":
     # Note: This is a structural example

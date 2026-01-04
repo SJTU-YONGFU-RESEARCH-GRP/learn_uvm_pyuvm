@@ -3,10 +3,12 @@ Module 3 Example 3.3: UVM Reporting System
 Demonstrates UVM reporting with different severity and verbosity levels.
 """
 
+import cocotb
+from cocotb.triggers import Timer
 from pyuvm import *
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
 class ReportingTest(uvm_test):
     """
     Test demonstrating UVM reporting system.
@@ -55,7 +57,7 @@ class ReportingTest(uvm_test):
         self.logger.info("  UVM_FULL: All messages")
         self.logger.info("  UVM_DEBUG: Debug messages")
         
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
         self.drop_objection()
     
     def report_phase(self):
@@ -77,14 +79,14 @@ class ReportingComponent(uvm_component):
     async def run_phase(self):
         """Run phase reporting."""
         self.logger.info(f"[{self.get_name()}] Running component")
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
     
     def report_phase(self):
         """Report phase reporting."""
         self.logger.info(f"[{self.get_name()}] Component reporting")
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
 class HierarchicalReportingTest(uvm_test):
     """
     Test demonstrating hierarchical reporting.
@@ -99,9 +101,30 @@ class HierarchicalReportingTest(uvm_test):
         """Run phase."""
         self.raise_objection()
         self.logger.info("Running HierarchicalReportingTest")
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
         self.drop_objection()
 
+
+# Cocotb test functions to run the pyuvm tests
+@cocotb.test()
+async def test_reporting(dut):
+    """Cocotb test wrapper for ReportingTest."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["ReportingTest"] = ReportingTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("ReportingTest")
+
+@cocotb.test()
+async def test_hierarchical_reporting(dut):
+    """Cocotb test wrapper for HierarchicalReportingTest."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["HierarchicalReportingTest"] = HierarchicalReportingTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("HierarchicalReportingTest")
 
 if __name__ == "__main__":
     print("This is a pyuvm reporting example.")
