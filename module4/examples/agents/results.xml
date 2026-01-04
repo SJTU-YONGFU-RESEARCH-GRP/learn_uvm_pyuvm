@@ -1,11 +1,7 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767521134" />
-    <testcase name="test_complete_agent" classname="agent_example" file="/mnt/d/proj/learn_uvm_pyuvm/module4/examples/agents/agent_example.py" lineno="302" time="0.010165691375732422" sim_time_ns="0.0" ratio_time="0.0">
-      <failure error_type="NameError" error_msg="name 'uvm_seq_item_pull_port' is not defined" />
-    </testcase>
-    <testcase name="test_passive_agent" classname="agent_example" file="/mnt/d/proj/learn_uvm_pyuvm/module4/examples/agents/agent_example.py" lineno="325" time="0.004904508590698242" sim_time_ns="0.0" ratio_time="0.0">
-      <failure error_type="NameError" error_msg="name 'uvm_seq_item_pull_port' is not defined" />
-    </testcase>
+    <property name="random_seed" value="1767530670" />
+    <testcase name="test_complete_agent" classname="agent_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module4/examples/agents/agent_example.py" lineno="300" time="0.002253293991088867" sim_time_ns="100.0" ratio_time="44379.47307163263" />
+    <testcase name="test_passive_agent" classname="agent_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module4/examples/agents/agent_example.py" lineno="323" time="0.002483844757080078" sim_time_ns="100.0" ratio_time="40260.16509886734" />
   </testsuite>
 </testsuites>

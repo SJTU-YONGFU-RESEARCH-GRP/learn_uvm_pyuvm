@@ -25,9 +25,9 @@ VL_INLINE_OPT void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) 
     vlSelfRef.simple_interface__DOT__clk = vlSelfRef.clk;
     vlSelfRef.simple_interface__DOT__rst_n = vlSelfRef.rst_n;
     vlSelfRef.simple_interface__DOT__valid = vlSelfRef.valid;
+    vlSelfRef.ready = vlSelfRef.simple_interface__DOT__ready;
     vlSelfRef.simple_interface__DOT__data = vlSelfRef.data;
     vlSelfRef.simple_interface__DOT__address = vlSelfRef.address;
-    vlSelfRef.ready = vlSelfRef.simple_interface__DOT__ready;
     vlSelfRef.result = vlSelfRef.simple_interface__DOT__result;
 }
 
@@ -71,12 +71,12 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelfRef.simple_interface__DOT__ready = ((IData)(vlSelfRef.rst_n) 
-                                              && (IData)(vlSelfRef.valid));
-    if (vlSelfRef.rst_n) {
-        if (vlSelfRef.valid) {
+    vlSelfRef.simple_interface__DOT__ready = ((IData)(vlSelfRef.simple_interface__DOT__rst_n) 
+                                              && (IData)(vlSelfRef.simple_interface__DOT__valid));
+    if (vlSelfRef.simple_interface__DOT__rst_n) {
+        if (vlSelfRef.simple_interface__DOT__valid) {
             vlSelfRef.simple_interface__DOT__result 
-                = (0xffU & ((IData)(1U) + (IData)(vlSelfRef.data)));
+                = (0xffU & ((IData)(1U) + (IData)(vlSelfRef.simple_interface__DOT__data)));
         }
     } else {
         vlSelfRef.simple_interface__DOT__result = 0U;

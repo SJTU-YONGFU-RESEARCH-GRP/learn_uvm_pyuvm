@@ -1,8 +1,6 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767521111" />
-    <testcase name="test_scoreboard" classname="scoreboard_example" file="/mnt/d/proj/learn_uvm_pyuvm/module4/examples/scoreboards/scoreboard_example.py" lineno="230" time="0.017588376998901367" sim_time_ns="0.0" ratio_time="0.0">
-      <failure error_type="NameError" error_msg="name 'uvm_analysis_imp' is not defined" />
-    </testcase>
+    <property name="random_seed" value="1767530665" />
+    <testcase name="test_scoreboard" classname="scoreboard_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module4/examples/scoreboards/scoreboard_example.py" lineno="224" time="0.002510547637939453" sim_time_ns="10.0" ratio_time="3983.1946818613487" />
   </testsuite>
 </testsuites>

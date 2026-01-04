@@ -14,22 +14,22 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
   public:
 
     // DESIGN SPECIFIC STATE
+    CData/*0:0*/ simple_interface__DOT__clk;
+    CData/*0:0*/ simple_interface__DOT__rst_n;
     VL_IN8(clk,0,0);
     VL_IN8(rst_n,0,0);
     VL_IN8(valid,0,0);
     VL_OUT8(ready,0,0);
     VL_IN8(data,7,0);
     VL_OUT8(result,7,0);
-    CData/*0:0*/ simple_interface__DOT__clk;
-    CData/*0:0*/ simple_interface__DOT__rst_n;
     CData/*0:0*/ simple_interface__DOT__valid;
     CData/*0:0*/ simple_interface__DOT__ready;
     CData/*7:0*/ simple_interface__DOT__data;
     CData/*7:0*/ simple_interface__DOT__result;
     CData/*0:0*/ __VstlFirstIteration;
     CData/*0:0*/ __VicoFirstIteration;
-    CData/*0:0*/ __Vtrigprevexpr___TOP__clk__0;
-    CData/*0:0*/ __Vtrigprevexpr___TOP__rst_n__0;
+    CData/*0:0*/ __Vtrigprevexpr___TOP__simple_interface__DOT__clk__0;
+    CData/*0:0*/ __Vtrigprevexpr___TOP__simple_interface__DOT__rst_n__0;
     CData/*0:0*/ __VactContinue;
     VL_IN16(address,15,0);
     SData/*15:0*/ simple_interface__DOT__address;

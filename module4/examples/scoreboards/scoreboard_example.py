@@ -46,7 +46,7 @@ class ScoreboardTransaction(uvm_sequence_item):
         return f"data=0x{self.data:02X}, expected=0x{self.expected:02X}, actual=0x{self.actual:02X}"
 
 
-class SimpleScoreboard(uvm_scoreboard):
+class SimpleScoreboard(uvm_subscriber):
     """
     Simple scoreboard demonstrating basic scoreboard implementation.
     
@@ -58,11 +58,8 @@ class SimpleScoreboard(uvm_scoreboard):
     """
     
     def build_phase(self):
-        """Build phase - create analysis export."""
+        """Build phase - analysis export provided by uvm_subscriber."""
         self.logger.info(f"[{self.get_name()}] Building scoreboard")
-        self.ap = uvm_analysis_export("ap", self)
-        self.imp = uvm_analysis_imp("imp", self)
-        self.ap.connect(self.imp)
         self.expected = []
         self.actual = []
         self.mismatches = []
@@ -104,7 +101,7 @@ class SimpleScoreboard(uvm_scoreboard):
                 self.logger.error(f"    Expected: {exp}, Actual: {act}")
 
 
-class ReferenceModelScoreboard(uvm_scoreboard):
+class ReferenceModelScoreboard(uvm_subscriber):
     """
     Scoreboard with reference model.
     
@@ -116,9 +113,6 @@ class ReferenceModelScoreboard(uvm_scoreboard):
     
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building reference model scoreboard")
-        self.ap = uvm_analysis_export("ap", self)
-        self.imp = uvm_analysis_imp("imp", self)
-        self.ap.connect(self.imp)
         self.actual = []
     
     def write(self, txn):

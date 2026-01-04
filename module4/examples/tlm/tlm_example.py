@@ -125,30 +125,33 @@ class PutProducer(uvm_component):
         self.drop_objection()
 
 
-class PutConsumer(uvm_component):
+class PutConsumer(uvm_put_export):
     """Component using put export to receive transactions."""
     
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building PutConsumer")
-        self.put_export = uvm_put_export("put_export", self)
-        self.put_imp = uvm_put_imp("put_imp", self)
-        self.put_export.connect(self.put_imp)
     
     async def put(self, txn):
         """Put implementation method."""
         self.logger.info(f"[{self.get_name()}] Received via put: {txn}")
         await Timer(5, units="ns")
 
+    async def try_put(self, txn):
+        """Try put implementation method."""
+        await self.put(txn)
+        return True
+
+    def can_put(self):
+        """Can put implementation method."""
+        return True
+
 
 # TLM Get Interface Example
-class GetProducer(uvm_component):
+class GetProducer(uvm_get_export):
     """Component using get export to provide transactions."""
     
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building GetProducer")
-        self.get_export = uvm_get_export("get_export", self)
-        self.get_imp = uvm_get_imp("get_imp", self)
-        self.get_export.connect(self.get_imp)
         self.transactions = []
         for i in range(5):
             txn = TLMTransaction()
@@ -165,6 +168,14 @@ class GetProducer(uvm_component):
             await Timer(5, units="ns")
             return txn
         return None
+
+    async def try_get(self):
+        """Try get implementation method."""
+        return await self.get()
+
+    def can_get(self):
+        """Can get implementation method."""
+        return self.index < len(self.transactions)
 
 
 class GetConsumer(uvm_component):
@@ -188,15 +199,14 @@ class GetConsumer(uvm_component):
 
 
 # TLM Transport Interface Example
-class TransportComponent(uvm_component):
+class TransportComponent(uvm_transport_export):
     """Component using transport interface."""
-    
+
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building TransportComponent")
+        # Create transport port and connect it to ourselves (since we inherit from export)
         self.transport_port = uvm_transport_port("transport_port", self)
-        self.transport_export = uvm_transport_export("transport_export", self)
-        self.transport_imp = uvm_transport_imp("transport_imp", self)
-        self.transport_export.connect(self.transport_imp)
+        self.transport_port.connect(self)
     
     async def transport(self, req):
         """Transport implementation - request/response."""
@@ -207,6 +217,10 @@ class TransportComponent(uvm_component):
         await Timer(10, units="ns")
         self.logger.info(f"[{self.get_name()}] Sending response: {resp}")
         return resp
+
+    async def nb_transport(self, req):
+        """Non-blocking transport implementation."""
+        return await self.transport(req)
 
 
 # TLM FIFO Example
@@ -267,10 +281,10 @@ class TLMEnv(uvm_env):
     def connect_phase(self):
         self.logger.info("Connecting TLMEnv")
         # Connect put interface
-        self.put_producer.put_port.connect(self.put_consumer.put_export)
+        self.put_producer.put_port.connect(self.put_consumer)
         
         # Connect get interface
-        self.get_consumer.get_port.connect(self.get_producer.get_export)
+        self.get_consumer.get_port.connect(self.get_producer)
         
         # Connect FIFO
         self.fifo_producer.put_port.connect(self.fifo.put_export)
