@@ -5,7 +5,6 @@
 // unless using verilator public meta comments.
 // Suggest use Vtop.h instead.
 
-
 #ifndef VERILATED_VTOP__PCH_H_
 #define VERILATED_VTOP__PCH_H_  // guard
 

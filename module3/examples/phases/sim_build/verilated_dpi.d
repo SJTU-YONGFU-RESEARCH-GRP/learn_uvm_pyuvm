@@ -1,12 +1,13 @@
-verilated_dpi.o: /usr/local/share/verilator/include/verilated_dpi.cpp \
- /usr/local/share/verilator/include/verilatedos.h \
- /usr/local/share/verilator/include/verilated_dpi.h \
- /usr/local/share/verilator/include/verilated.h \
- /usr/local/share/verilator/include/verilated_config.h \
- /usr/local/share/verilator/include/verilated_types.h \
- /usr/local/share/verilator/include/verilated_funcs.h \
- /usr/local/share/verilator/include/verilated_sym_props.h \
- /usr/local/share/verilator/include/vltstd/svdpi.h \
- /usr/local/share/verilator/include/verilated_imp.h \
- /usr/local/share/verilator/include/verilated_syms.h \
- /usr/local/share/verilator/include/vltstd/svdpi.h
+verilated_dpi.o: \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/verilated_dpi.cpp \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/verilatedos.h \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/verilated_dpi.h \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/verilated.h \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/verilated_config.h \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/verilated_types.h \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/verilated_funcs.h \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/verilated_sym_props.h \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/vltstd/svdpi.h \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/verilated_imp.h \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/verilated_syms.h \
+ /data1/luwangzilu/yongfu/local/share/verilator/include/vltstd/svdpi.h

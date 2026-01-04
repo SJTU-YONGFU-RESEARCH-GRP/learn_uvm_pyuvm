@@ -1,7 +1,7 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767521973" />
-    <testcase name="test_factory" classname="factory_example" file="/mnt/d/proj/learn_uvm_pyuvm/module3/examples/factory/factory_example.py" lineno="145" time="0.046460628509521484" sim_time_ns="10.0" ratio_time="215.23600348950583" />
-    <testcase name="test_factory_override" classname="factory_example" file="/mnt/d/proj/learn_uvm_pyuvm/module3/examples/factory/factory_example.py" lineno="155" time="0.0010783672332763672" sim_time_ns="10.000000000000002" ratio_time="9273.27879725846" />
+    <property name="random_seed" value="1767530579" />
+    <testcase name="test_factory" classname="factory_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module3/examples/factory/factory_example.py" lineno="145" time="0.0011224746704101562" sim_time_ns="10.0" ratio_time="8908.887000849618" />
+    <testcase name="test_factory_override" classname="factory_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module3/examples/factory/factory_example.py" lineno="155" time="0.00040602684020996094" sim_time_ns="10.000000000000002" ratio_time="24628.913681738115" />
   </testsuite>
 </testsuites>

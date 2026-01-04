@@ -10,8 +10,10 @@ VL_ATTR_COLD void Vtop___024root___eval_static(Vtop___024root* vlSelf) {
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelfRef.__Vtrigprevexpr___TOP__clk__0 = vlSelfRef.clk;
-    vlSelfRef.__Vtrigprevexpr___TOP__rst_n__0 = vlSelfRef.rst_n;
+    vlSelfRef.__Vtrigprevexpr___TOP__adder__DOT__clk__0 
+        = vlSelfRef.adder__DOT__clk;
+    vlSelfRef.__Vtrigprevexpr___TOP__adder__DOT__rst_n__0 
+        = vlSelfRef.adder__DOT__rst_n;
 }
 
 VL_ATTR_COLD void Vtop___024root___eval_initial(Vtop___024root* vlSelf) {
@@ -127,10 +129,10 @@ VL_ATTR_COLD void Vtop___024root___dump_triggers__act(Vtop___024root* vlSelf) {
         VL_DBG_MSGF("         No triggers active\n");
     }
     if ((1ULL & vlSelfRef.__VactTriggered.word(0U))) {
-        VL_DBG_MSGF("         'act' region trigger index 0 is active: @(posedge clk)\n");
+        VL_DBG_MSGF("         'act' region trigger index 0 is active: @(posedge adder.clk)\n");
     }
     if ((2ULL & vlSelfRef.__VactTriggered.word(0U))) {
-        VL_DBG_MSGF("         'act' region trigger index 1 is active: @(negedge rst_n)\n");
+        VL_DBG_MSGF("         'act' region trigger index 1 is active: @(negedge adder.rst_n)\n");
     }
 }
 #endif  // VL_DEBUG
@@ -145,10 +147,10 @@ VL_ATTR_COLD void Vtop___024root___dump_triggers__nba(Vtop___024root* vlSelf) {
         VL_DBG_MSGF("         No triggers active\n");
     }
     if ((1ULL & vlSelfRef.__VnbaTriggered.word(0U))) {
-        VL_DBG_MSGF("         'nba' region trigger index 0 is active: @(posedge clk)\n");
+        VL_DBG_MSGF("         'nba' region trigger index 0 is active: @(posedge adder.clk)\n");
     }
     if ((2ULL & vlSelfRef.__VnbaTriggered.word(0U))) {
-        VL_DBG_MSGF("         'nba' region trigger index 1 is active: @(negedge rst_n)\n");
+        VL_DBG_MSGF("         'nba' region trigger index 1 is active: @(negedge adder.rst_n)\n");
     }
 }
 #endif  // VL_DEBUG
@@ -158,18 +160,19 @@ VL_ATTR_COLD void Vtop___024root___ctor_var_reset(Vtop___024root* vlSelf) {
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelf->clk = VL_RAND_RESET_I(1);
-    vlSelf->rst_n = VL_RAND_RESET_I(1);
-    vlSelf->a = VL_RAND_RESET_I(8);
-    vlSelf->b = VL_RAND_RESET_I(8);
-    vlSelf->sum = VL_RAND_RESET_I(8);
-    vlSelf->carry = VL_RAND_RESET_I(1);
-    vlSelf->adder__DOT__clk = VL_RAND_RESET_I(1);
-    vlSelf->adder__DOT__rst_n = VL_RAND_RESET_I(1);
-    vlSelf->adder__DOT__a = VL_RAND_RESET_I(8);
-    vlSelf->adder__DOT__b = VL_RAND_RESET_I(8);
-    vlSelf->adder__DOT__sum = VL_RAND_RESET_I(8);
-    vlSelf->adder__DOT__carry = VL_RAND_RESET_I(1);
-    vlSelf->__Vtrigprevexpr___TOP__clk__0 = VL_RAND_RESET_I(1);
-    vlSelf->__Vtrigprevexpr___TOP__rst_n__0 = VL_RAND_RESET_I(1);
+    const uint64_t __VscopeHash = VL_MURMUR64_HASH(vlSelf->name());
+    vlSelf->clk = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 16707436170211756652ull);
+    vlSelf->rst_n = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 1638864771569018232ull);
+    vlSelf->a = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 510903276987443985ull);
+    vlSelf->b = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 16900879642891266615ull);
+    vlSelf->sum = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 17823321413984766096ull);
+    vlSelf->carry = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 16970673489425401941ull);
+    vlSelf->adder__DOT__clk = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 13404935905132520181ull);
+    vlSelf->adder__DOT__rst_n = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 13119572158862529826ull);
+    vlSelf->adder__DOT__a = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 15568069790225787213ull);
+    vlSelf->adder__DOT__b = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 636359676236681619ull);
+    vlSelf->adder__DOT__sum = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 9358388346452000594ull);
+    vlSelf->adder__DOT__carry = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 1085551801143572784ull);
+    vlSelf->__Vtrigprevexpr___TOP__adder__DOT__clk__0 = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 430745941231093462ull);
+    vlSelf->__Vtrigprevexpr___TOP__adder__DOT__rst_n__0 = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 2258850405389917408ull);
 }

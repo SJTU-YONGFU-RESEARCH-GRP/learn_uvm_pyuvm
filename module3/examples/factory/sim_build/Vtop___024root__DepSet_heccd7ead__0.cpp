@@ -70,13 +70,13 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelfRef.adder__DOT__carry = ((IData)(vlSelfRef.rst_n) 
-                                   && (1U & (((IData)(vlSelfRef.a) 
-                                              + (IData)(vlSelfRef.b)) 
+    vlSelfRef.adder__DOT__carry = ((IData)(vlSelfRef.adder__DOT__rst_n) 
+                                   && (1U & (((IData)(vlSelfRef.adder__DOT__a) 
+                                              + (IData)(vlSelfRef.adder__DOT__b)) 
                                              >> 8U)));
-    vlSelfRef.adder__DOT__sum = ((IData)(vlSelfRef.rst_n)
-                                  ? (0xffU & ((IData)(vlSelfRef.a) 
-                                              + (IData)(vlSelfRef.b)))
+    vlSelfRef.adder__DOT__sum = ((IData)(vlSelfRef.adder__DOT__rst_n)
+                                  ? (0xffU & ((IData)(vlSelfRef.adder__DOT__a) 
+                                              + (IData)(vlSelfRef.adder__DOT__b)))
                                   : 0U);
     vlSelfRef.carry = vlSelfRef.adder__DOT__carry;
     vlSelfRef.sum = vlSelfRef.adder__DOT__sum;

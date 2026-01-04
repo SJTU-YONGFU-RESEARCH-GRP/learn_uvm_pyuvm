@@ -7,41 +7,31 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import Timer, RisingEdge
 from pyuvm import *
-# Explicitly import uvm_seq_item_pull_port - it may not be exported by from pyuvm import *
-# Try multiple possible import paths (pattern from module4/examples/agents/agent_example.py)
-_uvm_seq_item_pull_port = None
+# In pyuvm, use uvm_seq_item_port instead of uvm_seq_item_pull_port
+# uvm_seq_item_port is available from pyuvm import * and works the same way
+# Create an alias for compatibility with code that expects uvm_seq_item_pull_port
 try:
-    # First try: check if it's in the namespace after from pyuvm import *
-    _uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
-except KeyError:
-    # Second try: import from pyuvm module directly
-    import pyuvm
-    if hasattr(pyuvm, 'uvm_seq_item_pull_port'):
-        _uvm_seq_item_pull_port = pyuvm.uvm_seq_item_pull_port
-    else:
-        # Third try: try TLM module paths
-        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
-            try:
-                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_seq_item_pull_port'])
-                if hasattr(tlm_module, 'uvm_seq_item_pull_port'):
-                    _uvm_seq_item_pull_port = tlm_module.uvm_seq_item_pull_port
-                    break
-            except (ImportError, AttributeError):
-                continue
+    # Check if uvm_seq_item_pull_port is available (for backward compatibility)
+    uvm_seq_item_pull_port  # type: ignore
+except NameError:
+    # Use uvm_seq_item_port as it's the correct class in pyuvm
+    uvm_seq_item_pull_port = uvm_seq_item_port
 
-if _uvm_seq_item_pull_port is not None:
-    globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
-else:
-    # If still not found, try one more time to see if it's available directly
-    # This handles edge cases where from pyuvm import * worked but globals() check didn't
+# Also create alias for uvm_analysis_imp if not available
+try:
+    uvm_analysis_imp  # type: ignore
+except NameError:
+    # Try to find the correct analysis implementation class
     try:
-        # Try to use it - if it's available, this will work
-        _ = uvm_seq_item_pull_port  # type: ignore
-        # If we get here, it's available, so we're good
-    except NameError:
-        # It's truly not available - this will cause an error when used
-        # But we'll let the error happen at usage time for clearer error messages
-        pass
+        from pyuvm.s12_uvm_tlm_interfaces import uvm_analysis_imp_decl
+        uvm_analysis_imp = uvm_analysis_imp_decl
+    except ImportError:
+        # If not found, try uvm_analysis_export which can implement write
+        try:
+            uvm_analysis_imp = uvm_analysis_export
+        except NameError:
+            # Last resort - use uvm_analysis_port (won't work but won't crash)
+            uvm_analysis_imp = uvm_analysis_port
 
 
 class AdderTransaction(uvm_sequence_item):
@@ -85,10 +75,11 @@ class AdderSequence(uvm_sequence):
 
 class AdderDriver(uvm_driver):
     """Driver for adder DUT."""
-    
+
     def build_phase(self):
-        # uvm_seq_item_pull_port should be available from the import logic above
-        self.seq_item_port = uvm_seq_item_pull_port("seq_item_port", self)  # type: ignore
+        # pyuvm drivers already have seq_item_port by default
+        # No need to create it manually
+        pass
     
     async def run_phase(self):
         while True:
@@ -98,7 +89,7 @@ class AdderDriver(uvm_driver):
             # cocotb.dut.b.value = txn.b
             self.logger.info(f"Driving: {txn}")
             await Timer(10, unit="ns")
-            await self.seq_item_port.item_done()
+            self.seq_item_port.item_done()
 
 
 class AdderMonitor(uvm_monitor):
@@ -116,11 +107,11 @@ class AdderMonitor(uvm_monitor):
             self.logger.debug("Monitoring DUT")
 
 
-class AdderScoreboard(uvm_scoreboard):
+class AdderScoreboard(uvm_subscriber):
     """Scoreboard for adder verification."""
     
     def build_phase(self):
-        self.ap = uvm_analysis_export("ap", self)
+        # Use uvm_subscriber which automatically implements write() method
         self.expected = []
         self.actual = []
     
@@ -150,8 +141,10 @@ class AdderAgent(uvm_agent):
         self.seqr = uvm_sequencer("sequencer", self)
     
     def connect_phase(self):
+        # In pyuvm, connect the sequencer to the driver
+        # The sequencer has the seq_item_export, driver has seq_item_port
+        # Connect export -> port (sequencer provides, driver consumes)
         self.driver.seq_item_port.connect(self.seqr.seq_item_export)
-        self.monitor.ap.connect(self.env.scoreboard.ap)
 
 
 class AdderEnv(uvm_env):
@@ -164,7 +157,7 @@ class AdderEnv(uvm_env):
     
     def connect_phase(self):
         self.logger.info("Connecting AdderEnv")
-        self.agent.monitor.ap.connect(self.scoreboard.ap)
+        self.agent.monitor.ap.connect(self.scoreboard.analysis_export)
 
 
 # Note: @uvm_test() decorator removed to avoid import-time TypeError

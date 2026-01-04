@@ -1,7 +1,7 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767521960" />
-    <testcase name="test_configdb" classname="configdb_example" file="/mnt/d/proj/learn_uvm_pyuvm/module3/examples/configdb/configdb_example.py" lineno="178" time="0.014698982238769531" sim_time_ns="10.0" ratio_time="680.3192110556024" />
-    <testcase name="test_configdb_hierarchy" classname="configdb_example" file="/mnt/d/proj/learn_uvm_pyuvm/module3/examples/configdb/configdb_example.py" lineno="188" time="0.0005543231964111328" sim_time_ns="10.000000000000002" ratio_time="18040.01720430108" />
+    <property name="random_seed" value="1767530576" />
+    <testcase name="test_configdb" classname="configdb_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module3/examples/configdb/configdb_example.py" lineno="178" time="0.001920938491821289" sim_time_ns="10.0" ratio_time="5205.788755119772" />
+    <testcase name="test_configdb_hierarchy" classname="configdb_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module3/examples/configdb/configdb_example.py" lineno="188" time="0.0006325244903564453" sim_time_ns="10.000000000000002" ratio_time="15809.664530719943" />
   </testsuite>
 </testsuites>

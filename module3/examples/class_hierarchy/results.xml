@@ -1,6 +1,6 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767521920" />
-    <testcase name="test_class_hierarchy" classname="class_hierarchy_example" file="/mnt/d/proj/learn_uvm_pyuvm/module3/examples/class_hierarchy/class_hierarchy_example.py" lineno="159" time="0.016259193420410156" sim_time_ns="100.0" ratio_time="6150.36659041586" />
+    <property name="random_seed" value="1767530566" />
+    <testcase name="test_class_hierarchy" classname="class_hierarchy_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module3/examples/class_hierarchy/class_hierarchy_example.py" lineno="159" time="0.0011587142944335938" sim_time_ns="100.0" ratio_time="86302.55144032922" />
   </testsuite>
 </testsuites>
