@@ -28,7 +28,7 @@ RUN_TLM=false
 RUN_SCOREBOARDS=false
 RUN_TRANSACTIONS=false
 RUN_AGENTS=false
-RUN_PYUVM_TESTS=false
+RUN_PYUVM_TESTS=true
 USE_VENV=true
 SIMULATOR="verilator"
 
@@ -145,9 +145,9 @@ check_prerequisites() {
     print_status $GREEN "Prerequisites check passed"
 }
 
-# Function to run Python example (syntax check)
+# Function to run Python example (run with cocotb)
 run_python_example() {
-    local example_file=$1
+    local example_dir=$1
     local example_name=$2
     
     print_header "Running: $example_name"
@@ -156,13 +156,23 @@ run_python_example() {
         source "$VENV_DIR/bin/activate"
     fi
     
-    # Check syntax only (don't execute, as these are structural examples)
-    if python3 -m py_compile "$example_file" 2>&1; then
-        print_status $GREEN "✓ $example_name syntax check passed"
-        print_status $YELLOW "Note: This is a structural example. Run with cocotb for full simulation."
+    # Check if Makefile exists
+    if [[ ! -f "$MODULE4_DIR/examples/$example_dir/Makefile" ]]; then
+        print_status $RED "✗ Makefile not found for $example_name"
+        return 1
+    fi
+    
+    # Run with cocotb using make
+    cd "$MODULE4_DIR/examples/$example_dir"
+    
+    print_status $BLUE "Running pyuvm test for $example_name..."
+    if make SIM="$SIMULATOR" 2>&1 | tee "/tmp/pyuvm_${example_dir}.log"; then
+        print_status $GREEN "✓ $example_name completed successfully"
+        cd "$PROJECT_ROOT"
         return 0
     else
-        print_status $RED "✗ $example_name syntax check failed"
+        print_status $RED "✗ $example_name failed"
+        cd "$PROJECT_ROOT"
         return 1
     fi
 }
@@ -311,64 +321,48 @@ main() {
        [[ "$RUN_SCOREBOARDS" == true ]] || [[ "$RUN_TRANSACTIONS" == true ]] || \
        [[ "$RUN_AGENTS" == true ]]; then
         
-        print_header "UVM Component Examples"
-        print_status $YELLOW "Note: Examples are pyuvm structural examples."
-        print_status $YELLOW "They demonstrate UVM component patterns and can be used in testbenches."
+        print_header "Running UVM Component Examples"
         
         if [[ "$RUN_DRIVERS" == true ]]; then
-            cd "$MODULE4_DIR/examples/drivers"
-            if ! run_python_example "driver_example.py" "Driver Implementation"; then
+            if ! run_python_example "drivers" "Driver Implementation"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_MONITORS" == true ]]; then
-            cd "$MODULE4_DIR/examples/monitors"
-            if ! run_python_example "monitor_example.py" "Monitor Implementation"; then
+            if ! run_python_example "monitors" "Monitor Implementation"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_SEQUENCERS" == true ]]; then
-            cd "$MODULE4_DIR/examples/sequencers"
-            if ! run_python_example "sequencer_example.py" "Sequencer and Sequences"; then
+            if ! run_python_example "sequencers" "Sequencer and Sequences"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_TLM" == true ]]; then
-            cd "$MODULE4_DIR/examples/tlm"
-            if ! run_python_example "tlm_example.py" "TLM Communication"; then
+            if ! run_python_example "tlm" "TLM Communication"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_SCOREBOARDS" == true ]]; then
-            cd "$MODULE4_DIR/examples/scoreboards"
-            if ! run_python_example "scoreboard_example.py" "Scoreboard Implementation"; then
+            if ! run_python_example "scoreboards" "Scoreboard Implementation"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_TRANSACTIONS" == true ]]; then
-            cd "$MODULE4_DIR/examples/transactions"
-            if ! run_python_example "transaction_example.py" "Transaction Modeling"; then
+            if ! run_python_example "transactions" "Transaction Modeling"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_AGENTS" == true ]]; then
-            cd "$MODULE4_DIR/examples/agents"
-            if ! run_python_example "agent_example.py" "Complete Agent"; then
+            if ! run_python_example "agents" "Complete Agent"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
     fi
     

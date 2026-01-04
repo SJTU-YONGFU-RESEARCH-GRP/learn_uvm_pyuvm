@@ -139,7 +139,6 @@ class DriverAgent(uvm_agent):
         self.driver.seq_item_port.connect(self.seqr.seq_item_export)
 
 
-@uvm_test()
 class DriverTest(uvm_test):
     """Test demonstrating driver usage."""
     
@@ -164,6 +163,21 @@ class DriverTest(uvm_test):
         self.logger.info("=" * 60)
         self.logger.info("Driver test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_driver(dut):
+    """Cocotb test wrapper for pyuvm driver test."""
+    import inspect
+    test = DriverTest.create("test")
+    await test.build_phase()
+    if hasattr(test, 'connect_phase') and inspect.iscoroutinefunction(test.connect_phase):
+        await test.connect_phase()
+    await test.run_phase()
+    if hasattr(test, 'check_phase'):
+        test.check_phase()
+    test.report_phase()
 
 
 if __name__ == "__main__":

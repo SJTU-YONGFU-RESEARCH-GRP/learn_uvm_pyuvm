@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1767521066" />
+    <testcase name="test_driver" classname="driver_example" file="/mnt/d/proj/learn_uvm_pyuvm/module4/examples/drivers/driver_example.py" lineno="169" time="0.016716480255126953" sim_time_ns="50.0" ratio_time="2991.0602732692473" />
+  </testsuite>
+</testsuites>

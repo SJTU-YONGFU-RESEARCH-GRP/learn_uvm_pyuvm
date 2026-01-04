@@ -139,7 +139,6 @@ class MonitorAgent(uvm_agent):
         self.logger.info("Connecting MonitorAgent")
 
 
-@uvm_test()
 class MonitorTest(uvm_test):
     """Test demonstrating monitor usage."""
     
@@ -159,6 +158,21 @@ class MonitorTest(uvm_test):
         self.logger.info("=" * 60)
         self.logger.info("Monitor test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_monitor(dut):
+    """Cocotb test wrapper for pyuvm monitor test."""
+    import inspect
+    test = MonitorTest.create("test")
+    await test.build_phase()
+    if hasattr(test, 'connect_phase') and inspect.iscoroutinefunction(test.connect_phase):
+        await test.connect_phase()
+    await test.run_phase()
+    if hasattr(test, 'check_phase'):
+        test.check_phase()
+    test.report_phase()
 
 
 if __name__ == "__main__":

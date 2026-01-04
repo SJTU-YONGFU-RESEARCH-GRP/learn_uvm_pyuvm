@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1767521078" />
+    <testcase name="test_monitor" classname="monitor_example" file="/mnt/d/proj/learn_uvm_pyuvm/module4/examples/monitors/monitor_example.py" lineno="164" time="0.0238492488861084" sim_time_ns="100.0" ratio_time="4193.004168707701" />
+  </testsuite>
+</testsuites>

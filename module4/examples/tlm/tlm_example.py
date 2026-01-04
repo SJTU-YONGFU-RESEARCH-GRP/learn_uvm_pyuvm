@@ -4,6 +4,91 @@ Demonstrates TLM interfaces, ports, exports, and implementations.
 """
 
 from pyuvm import *
+# Explicitly import TLM classes - they may not be exported by from pyuvm import *
+# Try multiple possible import paths
+
+# Import uvm_put_imp
+_uvm_put_imp = None
+try:
+    _uvm_put_imp = globals()['uvm_put_imp']
+except KeyError:
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_put_imp'):
+        _uvm_put_imp = pyuvm.uvm_put_imp
+    else:
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_put_imp'])
+                if hasattr(tlm_module, 'uvm_put_imp'):
+                    _uvm_put_imp = tlm_module.uvm_put_imp
+                    break
+            except (ImportError, AttributeError):
+                continue
+if _uvm_put_imp is not None:
+    globals()['uvm_put_imp'] = _uvm_put_imp
+
+# Import uvm_get_imp
+_uvm_get_imp = None
+try:
+    _uvm_get_imp = globals()['uvm_get_imp']
+except KeyError:
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_get_imp'):
+        _uvm_get_imp = pyuvm.uvm_get_imp
+    else:
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_get_imp'])
+                if hasattr(tlm_module, 'uvm_get_imp'):
+                    _uvm_get_imp = tlm_module.uvm_get_imp
+                    break
+            except (ImportError, AttributeError):
+                continue
+if _uvm_get_imp is not None:
+    globals()['uvm_get_imp'] = _uvm_get_imp
+
+# Import uvm_peek_imp
+_uvm_peek_imp = None
+try:
+    _uvm_peek_imp = globals()['uvm_peek_imp']
+except KeyError:
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_peek_imp'):
+        _uvm_peek_imp = pyuvm.uvm_peek_imp
+    else:
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_peek_imp'])
+                if hasattr(tlm_module, 'uvm_peek_imp'):
+                    _uvm_peek_imp = tlm_module.uvm_peek_imp
+                    break
+            except (ImportError, AttributeError):
+                continue
+if _uvm_peek_imp is not None:
+    globals()['uvm_peek_imp'] = _uvm_peek_imp
+
+# Import uvm_transport_imp
+_uvm_transport_imp = None
+try:
+    _uvm_transport_imp = globals()['uvm_transport_imp']
+except KeyError:
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_transport_imp'):
+        _uvm_transport_imp = pyuvm.uvm_transport_imp
+    else:
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_transport_imp'])
+                if hasattr(tlm_module, 'uvm_transport_imp'):
+                    _uvm_transport_imp = tlm_module.uvm_transport_imp
+                    break
+            except (ImportError, AttributeError):
+                continue
+if _uvm_transport_imp is not None:
+    globals()['uvm_transport_imp'] = _uvm_transport_imp
+
+import cocotb
+from cocotb.triggers import Timer
 
 
 class TLMTransaction(uvm_sequence_item):
@@ -192,7 +277,6 @@ class TLMEnv(uvm_env):
         self.fifo_consumer.get_port.connect(self.fifo.get_export)
 
 
-@uvm_test()
 class TLMTest(uvm_test):
     """Test demonstrating TLM usage."""
     
@@ -221,6 +305,60 @@ class TLMTest(uvm_test):
         self.logger.info("=" * 60)
         self.logger.info("TLM test completed")
         self.logger.info("=" * 60)
+
+
+# Helper function to recursively call build_phase on all children
+async def build_all_children(comp):
+    """Recursively call build_phase on component and all its children."""
+    import inspect
+    # Call build_phase on this component if it hasn't been called
+    if hasattr(comp, 'build_phase'):
+        if inspect.iscoroutinefunction(comp.build_phase):
+            await comp.build_phase()
+        else:
+            comp.build_phase()
+    
+    # Get all children and call build_phase on them
+    # Try different ways to access children
+    children = []
+    if hasattr(comp, '_children'):
+        children = list(comp._children.values())
+    elif hasattr(comp, 'get_children'):
+        children = comp.get_children()
+    else:
+        # Try to find child components by checking attributes
+        for attr_name in dir(comp):
+            if not attr_name.startswith('_'):
+                attr = getattr(comp, attr_name, None)
+                if attr is not None and isinstance(attr, uvm_component):
+                    children.append(attr)
+    
+    for child in children:
+        await build_all_children(child)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_tlm(dut):
+    """Cocotb test wrapper for pyuvm TLM test."""
+    import inspect
+    test = TLMTest.create("test")
+    await test.build_phase()
+    # Recursively build all children
+    if hasattr(test, 'env') and test.env:
+        await build_all_children(test.env)
+    if hasattr(test, 'connect_phase') and inspect.iscoroutinefunction(test.connect_phase):
+        await test.connect_phase()
+    # Ensure env's connect_phase is called
+    if hasattr(test, 'env') and test.env and hasattr(test.env, 'connect_phase'):
+        if inspect.iscoroutinefunction(test.env.connect_phase):
+            await test.env.connect_phase()
+        else:
+            test.env.connect_phase()
+    await test.run_phase()
+    if hasattr(test, 'check_phase'):
+        test.check_phase()
+    test.report_phase()
 
 
 if __name__ == "__main__":

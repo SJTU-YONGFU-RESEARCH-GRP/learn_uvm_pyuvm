@@ -4,6 +4,8 @@ Demonstrates transaction design, operations, and methods.
 """
 
 from pyuvm import *
+import cocotb
+from cocotb.triggers import Timer
 import copy
 
 
@@ -107,7 +109,6 @@ class TransactionWithMethods(uvm_sequence_item):
         return self.data == rhs.data and self.address == rhs.address
 
 
-@uvm_test()
 class TransactionTest(uvm_test):
     """Test demonstrating transaction usage."""
     
@@ -175,6 +176,21 @@ class TransactionTest(uvm_test):
         self.logger.info("=" * 60)
         self.logger.info("Transaction test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_transaction(dut):
+    """Cocotb test wrapper for pyuvm transaction test."""
+    import inspect
+    test = TransactionTest.create("test")
+    await test.build_phase()
+    if hasattr(test, 'connect_phase') and inspect.iscoroutinefunction(test.connect_phase):
+        await test.connect_phase()
+    await test.run_phase()
+    if hasattr(test, 'check_phase'):
+        test.check_phase()
+    test.report_phase()
 
 
 if __name__ == "__main__":

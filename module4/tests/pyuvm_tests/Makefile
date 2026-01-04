@@ -8,7 +8,8 @@ SIM ?= verilator
 PYTHON_FILES = test_complete_agent.py
 
 # Verilog files
-VERILOG_FILES = ../../dut/interfaces/simple_interface.v
+VERILOG_SOURCES = ../../dut/interfaces/simple_interface.v
+VERILOG_FILES = $(VERILOG_SOURCES)
 
 # Test to run
 TEST ?= test_complete_agent
@@ -20,12 +21,4 @@ COCOTB_REDUCED_LOG_FMT = 1
 
 # Include cocotb makefile
 include $(shell cocotb-config --makefiles)/Makefile.sim
-
-.PHONY: clean
-clean:
-	rm -rf __pycache__
-	rm -rf sim_build
-	rm -rf results.xml
-	rm -rf *.vcd
-	rm -rf *.log
 

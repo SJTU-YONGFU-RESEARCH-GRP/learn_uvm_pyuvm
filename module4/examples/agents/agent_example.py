@@ -4,6 +4,56 @@ Demonstrates complete agent with driver, monitor, sequencer, and sequences.
 """
 
 from pyuvm import *
+# Explicitly import uvm_seq_item_pull_port - it may not be exported by from pyuvm import *
+# Try multiple possible import paths
+_uvm_seq_item_pull_port = None
+try:
+    # First try: check if it's in the namespace after from pyuvm import *
+    _uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
+except KeyError:
+    # Second try: import from pyuvm module directly
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_seq_item_pull_port'):
+        _uvm_seq_item_pull_port = pyuvm.uvm_seq_item_pull_port
+    else:
+        # Third try: try TLM module paths
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_seq_item_pull_port'])
+                if hasattr(tlm_module, 'uvm_seq_item_pull_port'):
+                    _uvm_seq_item_pull_port = tlm_module.uvm_seq_item_pull_port
+                    break
+            except (ImportError, AttributeError):
+                continue
+
+if _uvm_seq_item_pull_port is not None:
+    globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
+
+# Explicitly import uvm_analysis_imp - it may not be exported by from pyuvm import *
+# Try multiple possible import paths
+_uvm_analysis_imp = None
+try:
+    # First try: check if it's in the namespace after from pyuvm import *
+    _uvm_analysis_imp = globals()['uvm_analysis_imp']
+except KeyError:
+    # Second try: import from pyuvm module directly
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_analysis_imp'):
+        _uvm_analysis_imp = pyuvm.uvm_analysis_imp
+    else:
+        # Third try: try TLM module paths
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_analysis_imp'])
+                if hasattr(tlm_module, 'uvm_analysis_imp'):
+                    _uvm_analysis_imp = tlm_module.uvm_analysis_imp
+                    break
+            except (ImportError, AttributeError):
+                continue
+
+if _uvm_analysis_imp is not None:
+    globals()['uvm_analysis_imp'] = _uvm_analysis_imp
+
 import cocotb
 from cocotb.triggers import Timer, RisingEdge
 
@@ -165,7 +215,6 @@ class AgentEnv(uvm_env):
         self.agent.monitor.ap.connect(self.scoreboard.ap)
 
 
-@uvm_test()
 class CompleteAgentTest(uvm_test):
     """Test demonstrating complete agent."""
     
@@ -194,7 +243,6 @@ class CompleteAgentTest(uvm_test):
         self.logger.info("=" * 60)
 
 
-@uvm_test()
 class PassiveAgentTest(uvm_test):
     """Test demonstrating passive agent."""
     
@@ -218,6 +266,83 @@ class PassiveAgentTest(uvm_test):
         self.logger.info("=" * 60)
         self.logger.info("Passive agent test completed")
         self.logger.info("=" * 60)
+
+
+# Helper function to recursively call build_phase on all children
+async def build_all_children(comp):
+    """Recursively call build_phase on component and all its children."""
+    import inspect
+    # Call build_phase on this component if it hasn't been called
+    if hasattr(comp, 'build_phase'):
+        if inspect.iscoroutinefunction(comp.build_phase):
+            await comp.build_phase()
+        else:
+            comp.build_phase()
+    
+    # Get all children and call build_phase on them
+    # Try different ways to access children
+    children = []
+    if hasattr(comp, '_children'):
+        children = list(comp._children.values())
+    elif hasattr(comp, 'get_children'):
+        children = comp.get_children()
+    else:
+        # Try to find child components by checking attributes
+        for attr_name in dir(comp):
+            if not attr_name.startswith('_'):
+                attr = getattr(comp, attr_name, None)
+                if attr is not None and isinstance(attr, uvm_component):
+                    children.append(attr)
+    
+    for child in children:
+        await build_all_children(child)
+
+
+# Cocotb test functions to run the pyuvm tests
+@cocotb.test()
+async def test_complete_agent(dut):
+    """Cocotb test wrapper for pyuvm complete agent test."""
+    import inspect
+    test = CompleteAgentTest.create("test_complete")
+    await test.build_phase()
+    # Recursively build all children
+    if hasattr(test, 'env') and test.env:
+        await build_all_children(test.env)
+    if hasattr(test, 'connect_phase') and inspect.iscoroutinefunction(test.connect_phase):
+        await test.connect_phase()
+    # Ensure env's connect_phase is called
+    if hasattr(test, 'env') and test.env and hasattr(test.env, 'connect_phase'):
+        if inspect.iscoroutinefunction(test.env.connect_phase):
+            await test.env.connect_phase()
+        else:
+            test.env.connect_phase()
+    await test.run_phase()
+    if hasattr(test, 'check_phase'):
+        test.check_phase()
+    test.report_phase()
+
+
+@cocotb.test()
+async def test_passive_agent(dut):
+    """Cocotb test wrapper for pyuvm passive agent test."""
+    import inspect
+    test = PassiveAgentTest.create("test_passive")
+    await test.build_phase()
+    # Recursively build all children
+    if hasattr(test, 'env') and test.env:
+        await build_all_children(test.env)
+    if hasattr(test, 'connect_phase') and inspect.iscoroutinefunction(test.connect_phase):
+        await test.connect_phase()
+    # Ensure env's connect_phase is called
+    if hasattr(test, 'env') and test.env and hasattr(test.env, 'connect_phase'):
+        if inspect.iscoroutinefunction(test.env.connect_phase):
+            await test.env.connect_phase()
+        else:
+            test.env.connect_phase()
+    await test.run_phase()
+    if hasattr(test, 'check_phase'):
+        test.check_phase()
+    test.report_phase()
 
 
 if __name__ == "__main__":
