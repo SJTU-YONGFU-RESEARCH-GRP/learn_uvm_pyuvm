@@ -4,6 +4,35 @@ Demonstrates functional coverage implementation.
 """
 
 from pyuvm import *
+import cocotb
+from cocotb.triggers import Timer
+
+# Explicit imports for TLM classes that may not be in __all__
+try:
+    # Try to get it from globals first (in case from pyuvm import * worked)
+    uvm_analysis_imp  # type: ignore
+except NameError:
+    # Not in globals, try to import it explicitly
+    _found = False
+    # Try TLM module paths
+    for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+        try:
+            tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_analysis_imp'])
+            if hasattr(tlm_module, 'uvm_analysis_imp'):
+                uvm_analysis_imp = getattr(tlm_module, 'uvm_analysis_imp')  # type: ignore
+                _found = True
+                break
+        except (ImportError, AttributeError):
+            continue
+    # If still not found, try pyuvm module directly
+    if not _found:
+        import pyuvm
+        if hasattr(pyuvm, 'uvm_analysis_imp'):
+            uvm_analysis_imp = getattr(pyuvm, 'uvm_analysis_imp')  # type: ignore
+            _found = True
+    if not _found:
+        # This should not happen if pyuvm is properly installed
+        raise ImportError("Could not import uvm_analysis_imp from pyuvm")
 
 
 class CoverageTransaction(uvm_sequence_item):
@@ -30,12 +59,8 @@ class CoverageModel(uvm_subscriber):
     - Coverage analysis
     """
     
-    def __init__(self, name="CoverageModel"):
-        super().__init__(name)
-        self.ap = uvm_analysis_export("ap", self)
-        self.imp = uvm_analysis_imp("imp", self)
-        self.ap.connect(self.imp)
-        
+    def __init__(self, name="CoverageModel", parent=None):
+        super().__init__(name, parent)
         # Coverage data structures
         self.data_coverage = {}  # data -> count
         self.address_ranges = {
@@ -45,6 +70,12 @@ class CoverageModel(uvm_subscriber):
         }
         self.command_coverage = {}  # command -> count
         self.cross_coverage = {}  # (data, command) -> count
+    
+    def build_phase(self):
+        """Build phase - create analysis ports."""
+        self.ap = uvm_analysis_export("ap", self)
+        self.imp = uvm_analysis_imp("imp", self)
+        self.ap.connect(self.imp)
     
     def write(self, txn):
         """Write method - sample coverage."""
@@ -157,11 +188,12 @@ class CoverageEnv(uvm_env):
         self.monitor.ap.connect(self.coverage.ap)
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class CoverageTest(uvm_test):
     """Test demonstrating coverage model."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Coverage Example Test")
         self.logger.info("=" * 60)
@@ -177,6 +209,18 @@ class CoverageTest(uvm_test):
         self.logger.info("=" * 60)
         self.logger.info("Coverage test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_coverage(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["CoverageTest"] = CoverageTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("CoverageTest")
 
 
 if __name__ == "__main__":

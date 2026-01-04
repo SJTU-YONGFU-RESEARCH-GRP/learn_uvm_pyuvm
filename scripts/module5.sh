@@ -26,7 +26,7 @@ RUN_COVERAGE=false
 RUN_CONFIGURATION=false
 RUN_CALLBACKS=false
 RUN_REGISTER_MODEL=false
-RUN_PYUVM_TESTS=false
+RUN_PYUVM_TESTS=true
 USE_VENV=true
 SIMULATOR="verilator"
 
@@ -142,9 +142,9 @@ check_prerequisites() {
     print_status $GREEN "Prerequisites check passed"
 }
 
-# Function to run Python example (syntax check)
+# Function to run Python example (run with cocotb)
 run_python_example() {
-    local example_file=$1
+    local example_dir=$1
     local example_name=$2
     
     print_header "Running: $example_name"
@@ -153,13 +153,23 @@ run_python_example() {
         source "$VENV_DIR/bin/activate"
     fi
     
-    # Check syntax only (don't execute, as these are structural examples)
-    if python3 -m py_compile "$example_file" 2>&1; then
-        print_status $GREEN "✓ $example_name syntax check passed"
-        print_status $YELLOW "Note: This is a structural example. Run with cocotb for full simulation."
+    # Check if Makefile exists
+    if [[ ! -f "$MODULE5_DIR/examples/$example_dir/Makefile" ]]; then
+        print_status $RED "✗ Makefile not found for $example_name"
+        return 1
+    fi
+    
+    # Run with cocotb using make
+    cd "$MODULE5_DIR/examples/$example_dir"
+    
+    print_status $BLUE "Running pyuvm test for $example_name..."
+    if make SIM="$SIMULATOR" 2>&1 | tee "/tmp/pyuvm_${example_dir}.log"; then
+        print_status $GREEN "✓ $example_name completed successfully"
+        cd "$PROJECT_ROOT"
         return 0
     else
-        print_status $RED "✗ $example_name syntax check failed"
+        print_status $RED "✗ $example_name failed"
+        cd "$PROJECT_ROOT"
         return 1
     fi
 }
@@ -291,48 +301,36 @@ main() {
        [[ "$RUN_CONFIGURATION" == true ]] || [[ "$RUN_CALLBACKS" == true ]] || \
        [[ "$RUN_REGISTER_MODEL" == true ]]; then
         
-        print_header "Advanced UVM Examples"
-        print_status $YELLOW "Note: Examples are pyuvm structural examples."
-        print_status $YELLOW "They demonstrate advanced UVM patterns and can be used in testbenches."
+        print_header "Running Advanced UVM Examples"
         
         if [[ "$RUN_VIRTUAL_SEQUENCES" == true ]]; then
-            cd "$MODULE5_DIR/examples/virtual_sequences"
-            if ! run_python_example "virtual_sequence_example.py" "Virtual Sequences"; then
+            if ! run_python_example "virtual_sequences" "Virtual Sequences"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_COVERAGE" == true ]]; then
-            cd "$MODULE5_DIR/examples/coverage"
-            if ! run_python_example "coverage_example.py" "Coverage Models"; then
+            if ! run_python_example "coverage" "Coverage Models"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_CONFIGURATION" == true ]]; then
-            cd "$MODULE5_DIR/examples/configuration"
-            if ! run_python_example "configuration_example.py" "Configuration Objects"; then
+            if ! run_python_example "configuration" "Configuration Objects"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_CALLBACKS" == true ]]; then
-            cd "$MODULE5_DIR/examples/callbacks"
-            if ! run_python_example "callback_example.py" "UVM Callbacks"; then
+            if ! run_python_example "callbacks" "UVM Callbacks"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_REGISTER_MODEL" == true ]]; then
-            cd "$MODULE5_DIR/examples/register_model"
-            if ! run_python_example "register_model_example.py" "Register Model"; then
+            if ! run_python_example "register_model" "Register Model"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
     fi
     

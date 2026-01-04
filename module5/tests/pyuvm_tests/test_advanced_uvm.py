@@ -8,6 +8,34 @@ from cocotb.clock import Clock
 from cocotb.triggers import Timer, RisingEdge
 from pyuvm import *
 
+# Explicit imports for TLM classes that may not be in __all__
+for class_name in ['uvm_seq_item_pull_port', 'uvm_analysis_imp']:
+    try:
+        # Try to get it from globals first (in case from pyuvm import * worked)
+        eval(class_name)  # type: ignore
+    except NameError:
+        # Not in globals, try to import it explicitly
+        _found = False
+        # Try TLM module paths
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=[class_name])
+                if hasattr(tlm_module, class_name):
+                    globals()[class_name] = getattr(tlm_module, class_name)  # type: ignore
+                    _found = True
+                    break
+            except (ImportError, AttributeError):
+                continue
+        # If still not found, try pyuvm module directly
+        if not _found:
+            import pyuvm
+            if hasattr(pyuvm, class_name):
+                globals()[class_name] = getattr(pyuvm, class_name)  # type: ignore
+                _found = True
+        if not _found:
+            # This should not happen if pyuvm is properly installed
+            raise ImportError(f"Could not import {class_name} from pyuvm")
+
 
 class AdvancedTransaction(uvm_sequence_item):
     """Transaction for advanced UVM test."""
@@ -66,12 +94,15 @@ class AdvancedMonitor(uvm_monitor):
 class AdvancedCoverage(uvm_subscriber):
     """Coverage for advanced test."""
     
-    def __init__(self, name="AdvancedCoverage"):
-        super().__init__(name)
+    def __init__(self, name="AdvancedCoverage", parent=None):
+        super().__init__(name, parent)
+        self.coverage_data = {}
+    
+    def build_phase(self):
+        """Build phase - create analysis ports."""
         self.ap = uvm_analysis_export("ap", self)
         self.imp = uvm_analysis_imp("imp", self)
         self.ap.connect(self.imp)
-        self.coverage_data = {}
     
     def write(self, txn):
         """Sample coverage."""
@@ -106,11 +137,12 @@ class AdvancedEnv(uvm_env):
         self.agent.monitor.ap.connect(self.coverage.ap)
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class AdvancedUVMTest(uvm_test):
     """Test class for advanced UVM."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Building AdvancedUVMTest")
         self.logger.info("=" * 60)
@@ -134,6 +166,18 @@ class AdvancedUVMTest(uvm_test):
         self.logger.info("=" * 60)
         self.logger.info("AdvancedUVMTest completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_advanced_uvm(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["AdvancedUVMTest"] = AdvancedUVMTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("AdvancedUVMTest")
 
 
 if __name__ == "__main__":

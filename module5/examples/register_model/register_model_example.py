@@ -5,6 +5,35 @@ Note: Full register model support may vary in pyuvm.
 """
 
 from pyuvm import *
+import cocotb
+from cocotb.triggers import Timer
+
+# Explicit imports for TLM classes that may not be in __all__
+try:
+    # Try to get it from globals first (in case from pyuvm import * worked)
+    uvm_seq_item_pull_port  # type: ignore
+except NameError:
+    # Not in globals, try to import it explicitly
+    _found = False
+    # Try TLM module paths
+    for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+        try:
+            tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_seq_item_pull_port'])
+            if hasattr(tlm_module, 'uvm_seq_item_pull_port'):
+                uvm_seq_item_pull_port = getattr(tlm_module, 'uvm_seq_item_pull_port')  # type: ignore
+                _found = True
+                break
+        except (ImportError, AttributeError):
+            continue
+    # If still not found, try pyuvm module directly
+    if not _found:
+        import pyuvm
+        if hasattr(pyuvm, 'uvm_seq_item_pull_port'):
+            uvm_seq_item_pull_port = getattr(pyuvm, 'uvm_seq_item_pull_port')  # type: ignore
+            _found = True
+    if not _found:
+        # This should not happen if pyuvm is properly installed
+        raise ImportError("Could not import uvm_seq_item_pull_port from pyuvm")
 
 
 class RegisterTransaction(uvm_sequence_item):
@@ -162,11 +191,12 @@ class RegisterEnv(uvm_env):
         self.logger.info("Connecting RegisterEnv")
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class RegisterModelTest(uvm_test):
     """Test demonstrating register model."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Register Model Example Test")
         self.logger.info("=" * 60)
@@ -201,6 +231,18 @@ class RegisterModelTest(uvm_test):
         self.logger.info("=" * 60)
         self.logger.info("Register model test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_register_model(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["RegisterModelTest"] = RegisterModelTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("RegisterModelTest")
 
 
 if __name__ == "__main__":

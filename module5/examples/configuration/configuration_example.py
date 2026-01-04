@@ -4,6 +4,8 @@ Demonstrates configuration object design and hierarchy.
 """
 
 from pyuvm import *
+import cocotb
+from cocotb.triggers import Timer
 
 
 class AgentConfig(uvm_object):
@@ -145,11 +147,12 @@ class ConfigurableEnv(uvm_env):
         self.logger.info("Connecting ConfigurableEnv")
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class ConfigurationTest(uvm_test):
     """Test demonstrating configuration objects."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Configuration Example Test")
         self.logger.info("=" * 60)
@@ -166,13 +169,25 @@ class ConfigurationTest(uvm_test):
         self.logger.info(f"  Master agent config: {self.env.master_agent.config}")
         self.logger.info(f"  Slave agent config: {self.env.slave_agent.config}")
         
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
         self.drop_objection()
     
     def report_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Configuration test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_configuration(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["ConfigurationTest"] = ConfigurationTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("ConfigurationTest")
 
 
 if __name__ == "__main__":
