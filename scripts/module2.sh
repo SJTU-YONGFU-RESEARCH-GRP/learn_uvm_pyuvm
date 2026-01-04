@@ -135,22 +135,28 @@ check_prerequisites() {
 run_cocotb_example() {
     local example_dir=$1
     local example_name=$2
-    
+
     print_header "Running: $example_name"
-    
+
     if [[ "$USE_VENV" == true ]] && [[ -d "$VENV_DIR" ]] && [[ -f "$VENV_DIR/bin/activate" ]]; then
         source "$VENV_DIR/bin/activate"
     fi
-    
+
     # Check if Makefile exists
     if [[ ! -f "$MODULE2_DIR/examples/$example_dir/Makefile" ]]; then
         print_status $RED "✗ Makefile not found for $example_name"
         return 1
     fi
-    
+
+    # Set library path for cocotb VPI libraries
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(cocotb-config --lib-dir)"
+
     # Run with cocotb using make
     cd "$MODULE2_DIR/examples/$example_dir"
-    
+
+    # Clean previous build to avoid path issues
+    make clean > /dev/null 2>&1 || true
+
     print_status $BLUE "Running cocotb test for $example_name..."
     if make SIM="$SIMULATOR" 2>&1 | tee "/tmp/cocotb_${example_dir}.log"; then
         print_status $GREEN "✓ $example_name completed successfully"
@@ -166,15 +172,21 @@ run_cocotb_example() {
 # Function to run cocotb tests
 run_cocotb_tests() {
     print_header "Running cocotb Tests"
-    
+
     if [[ "$USE_VENV" == true ]] && [[ -d "$VENV_DIR" ]] && [[ -f "$VENV_DIR/bin/activate" ]]; then
         source "$VENV_DIR/bin/activate"
     fi
-    
+
+    # Set library path for cocotb VPI libraries
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(cocotb-config --lib-dir)"
+
     cd "$MODULE2_DIR/tests/cocotb_tests"
-    
+
+    # Clean previous build to avoid path issues
+    make clean > /dev/null 2>&1 || true
+
     local failed=0
-    
+
     # Run simple register tests
     print_status $BLUE "Running simple register tests..."
     if make SIM="$SIMULATOR" TEST=test_simple_register 2>&1 | tee /tmp/cocotb_register.log; then
@@ -183,7 +195,7 @@ run_cocotb_tests() {
         print_status $RED "✗ Simple register tests failed"
         failed=$((failed + 1))
     fi
-    
+
     # Run shift register tests
     print_status $BLUE "Running shift register tests..."
     if make SIM="$SIMULATOR" TEST=test_shift_register 2>&1 | tee /tmp/cocotb_shift_register.log; then
@@ -192,9 +204,9 @@ run_cocotb_tests() {
         print_status $RED "✗ Shift register tests failed"
         failed=$((failed + 1))
     fi
-    
+
     cd "$PROJECT_ROOT"
-    
+
     if [[ $failed -eq 0 ]]; then
         print_status $GREEN "All cocotb tests passed"
         return 0

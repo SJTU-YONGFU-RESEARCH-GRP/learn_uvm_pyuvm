@@ -10,8 +10,10 @@ VL_ATTR_COLD void Vtop___024root___eval_static(Vtop___024root* vlSelf) {
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelfRef.__Vtrigprevexpr___TOP__clk__0 = vlSelfRef.clk;
-    vlSelfRef.__Vtrigprevexpr___TOP__rst_n__0 = vlSelfRef.rst_n;
+    vlSelfRef.__Vtrigprevexpr___TOP__simple_register__DOT__clk__0 
+        = vlSelfRef.simple_register__DOT__clk;
+    vlSelfRef.__Vtrigprevexpr___TOP__simple_register__DOT__rst_n__0 
+        = vlSelfRef.simple_register__DOT__rst_n;
 }
 
 VL_ATTR_COLD void Vtop___024root___eval_initial(Vtop___024root* vlSelf) {
@@ -127,10 +129,10 @@ VL_ATTR_COLD void Vtop___024root___dump_triggers__act(Vtop___024root* vlSelf) {
         VL_DBG_MSGF("         No triggers active\n");
     }
     if ((1ULL & vlSelfRef.__VactTriggered.word(0U))) {
-        VL_DBG_MSGF("         'act' region trigger index 0 is active: @(posedge clk)\n");
+        VL_DBG_MSGF("         'act' region trigger index 0 is active: @(posedge simple_register.clk)\n");
     }
     if ((2ULL & vlSelfRef.__VactTriggered.word(0U))) {
-        VL_DBG_MSGF("         'act' region trigger index 1 is active: @(negedge rst_n)\n");
+        VL_DBG_MSGF("         'act' region trigger index 1 is active: @(negedge simple_register.rst_n)\n");
     }
 }
 #endif  // VL_DEBUG
@@ -145,10 +147,10 @@ VL_ATTR_COLD void Vtop___024root___dump_triggers__nba(Vtop___024root* vlSelf) {
         VL_DBG_MSGF("         No triggers active\n");
     }
     if ((1ULL & vlSelfRef.__VnbaTriggered.word(0U))) {
-        VL_DBG_MSGF("         'nba' region trigger index 0 is active: @(posedge clk)\n");
+        VL_DBG_MSGF("         'nba' region trigger index 0 is active: @(posedge simple_register.clk)\n");
     }
     if ((2ULL & vlSelfRef.__VnbaTriggered.word(0U))) {
-        VL_DBG_MSGF("         'nba' region trigger index 1 is active: @(negedge rst_n)\n");
+        VL_DBG_MSGF("         'nba' region trigger index 1 is active: @(negedge simple_register.rst_n)\n");
     }
 }
 #endif  // VL_DEBUG
@@ -158,16 +160,17 @@ VL_ATTR_COLD void Vtop___024root___ctor_var_reset(Vtop___024root* vlSelf) {
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelf->clk = VL_RAND_RESET_I(1);
-    vlSelf->rst_n = VL_RAND_RESET_I(1);
-    vlSelf->enable = VL_RAND_RESET_I(1);
-    vlSelf->d = VL_RAND_RESET_I(8);
-    vlSelf->q = VL_RAND_RESET_I(8);
-    vlSelf->simple_register__DOT__clk = VL_RAND_RESET_I(1);
-    vlSelf->simple_register__DOT__rst_n = VL_RAND_RESET_I(1);
-    vlSelf->simple_register__DOT__enable = VL_RAND_RESET_I(1);
-    vlSelf->simple_register__DOT__d = VL_RAND_RESET_I(8);
-    vlSelf->simple_register__DOT__q = VL_RAND_RESET_I(8);
-    vlSelf->__Vtrigprevexpr___TOP__clk__0 = VL_RAND_RESET_I(1);
-    vlSelf->__Vtrigprevexpr___TOP__rst_n__0 = VL_RAND_RESET_I(1);
+    const uint64_t __VscopeHash = VL_MURMUR64_HASH(vlSelf->name());
+    vlSelf->clk = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 16707436170211756652ull);
+    vlSelf->rst_n = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 1638864771569018232ull);
+    vlSelf->enable = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 11030669854614834172ull);
+    vlSelf->d = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 1720370409040345145ull);
+    vlSelf->q = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 8861071527689086543ull);
+    vlSelf->simple_register__DOT__clk = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 4309884090450744656ull);
+    vlSelf->simple_register__DOT__rst_n = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 2818912953836579483ull);
+    vlSelf->simple_register__DOT__enable = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 13473570710647009203ull);
+    vlSelf->simple_register__DOT__d = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 2166064625948044435ull);
+    vlSelf->simple_register__DOT__q = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 16502584946439935109ull);
+    vlSelf->__Vtrigprevexpr___TOP__simple_register__DOT__clk__0 = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 11581281320165992016ull);
+    vlSelf->__Vtrigprevexpr___TOP__simple_register__DOT__rst_n__0 = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 12359459406711580887ull);
 }

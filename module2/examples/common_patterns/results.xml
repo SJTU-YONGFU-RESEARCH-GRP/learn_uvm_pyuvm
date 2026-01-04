@@ -1,10 +1,10 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767520252" />
-    <testcase name="test_sequential_pattern" classname="common_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/common_patterns/common_patterns_example.py" lineno="61" time="0.01532745361328125" sim_time_ns="101.0" ratio_time="6589.483325037332" />
-    <testcase name="test_random_pattern" classname="common_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/common_patterns/common_patterns_example.py" lineno="83" time="0.0014698505401611328" sim_time_ns="151.0" ratio_time="102731.53349553933" />
-    <testcase name="test_scoreboard_pattern" classname="common_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/common_patterns/common_patterns_example.py" lineno="106" time="0.0007646083831787109" sim_time_ns="101.0" ratio_time="132093.76488930464" />
-    <testcase name="test_reference_model" classname="common_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/common_patterns/common_patterns_example.py" lineno="137" time="0.0008950233459472656" sim_time_ns="101.0" ratio_time="112846.21843367076" />
-    <testcase name="test_transaction_level" classname="common_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/common_patterns/common_patterns_example.py" lineno="173" time="0.0007402896881103516" sim_time_ns="81.0" ratio_time="109416.62608695652" />
+    <property name="random_seed" value="1767530503" />
+    <testcase name="test_sequential_pattern" classname="common_patterns_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/common_patterns/common_patterns_example.py" lineno="61" time="0.0016207695007324219" sim_time_ns="101.0" ratio_time="62316.078846719625" />
+    <testcase name="test_random_pattern" classname="common_patterns_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/common_patterns/common_patterns_example.py" lineno="83" time="0.0015063285827636719" sim_time_ns="151.0" ratio_time="100243.73282684395" />
+    <testcase name="test_scoreboard_pattern" classname="common_patterns_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/common_patterns/common_patterns_example.py" lineno="106" time="0.0009419918060302734" sim_time_ns="101.0" ratio_time="107219.61629967098" />
+    <testcase name="test_reference_model" classname="common_patterns_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/common_patterns/common_patterns_example.py" lineno="137" time="0.0007665157318115234" sim_time_ns="101.0" ratio_time="131765.07122861585" />
+    <testcase name="test_transaction_level" classname="common_patterns_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/common_patterns/common_patterns_example.py" lineno="173" time="0.0007803440093994141" sim_time_ns="81.0" ratio_time="103800.37396883593" />
   </testsuite>
 </testsuites>

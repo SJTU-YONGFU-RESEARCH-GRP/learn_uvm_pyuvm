@@ -1,12 +1,12 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767520231" />
-    <testcase name="test_edge_triggers" classname="triggers_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="15" time="0.000537872314453125" sim_time_ns="10.0" ratio_time="18591.77304964539" />
-    <testcase name="test_timer_trigger" classname="triggers_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="41" time="0.000789642333984375" sim_time_ns="110.0" ratio_time="139303.57487922706" />
-    <testcase name="test_readonly_trigger" classname="triggers_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="60" time="0.0013439655303955078" sim_time_ns="0.0" ratio_time="0.0" />
-    <testcase name="test_combine_trigger" classname="triggers_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="82" time="0.0005087852478027344" sim_time_ns="9.999999999999986" ratio_time="19654.65791940016" />
-    <testcase name="test_first_trigger" classname="triggers_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="98" time="0.0005140304565429688" sim_time_ns="10.0" ratio_time="19454.100185528758" />
-    <testcase name="test_timeout_handling" classname="triggers_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="120" time="0.0013301372528076172" sim_time_ns="1000.0000000000001" ratio_time="751802.1150743861" />
-    <testcase name="test_parallel_triggers" classname="triggers_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="136" time="0.001119852066040039" sim_time_ns="200.0" ratio_time="178595.01809665744" />
+    <property name="random_seed" value="1767530497" />
+    <testcase name="test_edge_triggers" classname="triggers_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="15" time="0.0006771087646484375" sim_time_ns="10.0" ratio_time="14768.676056338029" />
+    <testcase name="test_timer_trigger" classname="triggers_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="41" time="0.0005671977996826172" sim_time_ns="110.0" ratio_time="193935.87221521648" />
+    <testcase name="test_readonly_trigger" classname="triggers_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="60" time="0.0006723403930664062" sim_time_ns="0.0" ratio_time="0.0" />
+    <testcase name="test_combine_trigger" classname="triggers_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="82" time="0.0005435943603515625" sim_time_ns="9.999999999999986" ratio_time="18396.07017543857" />
+    <testcase name="test_first_trigger" classname="triggers_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="98" time="0.0005028247833251953" sim_time_ns="10.0" ratio_time="19887.643432906592" />
+    <testcase name="test_timeout_handling" classname="triggers_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="120" time="0.0007541179656982422" sim_time_ns="1000.0000000000001" ratio_time="1326052.4818210562" />
+    <testcase name="test_parallel_triggers" classname="triggers_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/triggers/triggers_example.py" lineno="136" time="0.0007266998291015625" sim_time_ns="200.0" ratio_time="275216.79790026246" />
   </testsuite>
 </testsuites>

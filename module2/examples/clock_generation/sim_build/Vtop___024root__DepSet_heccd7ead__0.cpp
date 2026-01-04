@@ -69,9 +69,9 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    if (vlSelfRef.rst_n) {
-        if (vlSelfRef.enable) {
-            vlSelfRef.simple_register__DOT__q = vlSelfRef.d;
+    if (vlSelfRef.simple_register__DOT__rst_n) {
+        if (vlSelfRef.simple_register__DOT__enable) {
+            vlSelfRef.simple_register__DOT__q = vlSelfRef.simple_register__DOT__d;
         }
     } else {
         vlSelfRef.simple_register__DOT__q = 0U;
