@@ -26,7 +26,7 @@ RUN_PROTOCOL=false
 RUN_PROTOCOL_CHECKERS=false
 RUN_SCOREBOARDS=false
 RUN_ARCHITECTURE=false
-RUN_PYUVM_TESTS=false
+RUN_PYUVM_TESTS=true
 USE_VENV=true
 SIMULATOR="verilator"
 
@@ -142,9 +142,9 @@ check_prerequisites() {
     print_status $GREEN "Prerequisites check passed"
 }
 
-# Function to run Python example (syntax check)
+# Function to run Python example (run with cocotb)
 run_python_example() {
-    local example_file=$1
+    local example_dir=$1
     local example_name=$2
     
     print_header "Running: $example_name"
@@ -153,13 +153,23 @@ run_python_example() {
         source "$VENV_DIR/bin/activate"
     fi
     
-    # Check syntax only (don't execute, as these are structural examples)
-    if python3 -m py_compile "$example_file" 2>&1; then
-        print_status $GREEN "✓ $example_name syntax check passed"
-        print_status $YELLOW "Note: This is a structural example. Run with cocotb for full simulation."
+    # Check if Makefile exists
+    if [[ ! -f "$MODULE6_DIR/examples/$example_dir/Makefile" ]]; then
+        print_status $RED "✗ Makefile not found for $example_name"
+        return 1
+    fi
+    
+    # Run with cocotb using make
+    cd "$MODULE6_DIR/examples/$example_dir"
+    
+    print_status $BLUE "Running pyuvm test for $example_name..."
+    if make SIM="$SIMULATOR" 2>&1 | tee "/tmp/pyuvm_${example_dir}.log"; then
+        print_status $GREEN "✓ $example_name completed successfully"
+        cd "$PROJECT_ROOT"
         return 0
     else
-        print_status $RED "✗ $example_name syntax check failed"
+        print_status $RED "✗ $example_name failed"
+        cd "$PROJECT_ROOT"
         return 1
     fi
 }
@@ -291,48 +301,36 @@ main() {
        [[ "$RUN_PROTOCOL_CHECKERS" == true ]] || [[ "$RUN_SCOREBOARDS" == true ]] || \
        [[ "$RUN_ARCHITECTURE" == true ]]; then
         
-        print_header "Complex Testbench Examples"
-        print_status $YELLOW "Note: Examples are pyuvm structural examples."
-        print_status $YELLOW "They demonstrate complex testbench patterns and can be used in testbenches."
+        print_header "Running Complex Testbench Examples"
         
         if [[ "$RUN_MULTI_AGENT" == true ]]; then
-            cd "$MODULE6_DIR/examples/multi_agent"
-            if ! run_python_example "multi_agent_example.py" "Multi-Agent Environment"; then
+            if ! run_python_example "multi_agent" "Multi-Agent Environment"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_PROTOCOL" == true ]]; then
-            cd "$MODULE6_DIR/examples/protocol"
-            if ! run_python_example "protocol_example.py" "Protocol Verification"; then
+            if ! run_python_example "protocol" "Protocol Verification"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_PROTOCOL_CHECKERS" == true ]]; then
-            cd "$MODULE6_DIR/examples/protocol_checkers"
-            if ! run_python_example "protocol_checker_example.py" "Protocol Checkers"; then
+            if ! run_python_example "protocol_checkers" "Protocol Checkers"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_SCOREBOARDS" == true ]]; then
-            cd "$MODULE6_DIR/examples/scoreboards"
-            if ! run_python_example "multi_channel_scoreboard_example.py" "Multi-Channel Scoreboards"; then
+            if ! run_python_example "scoreboards" "Multi-Channel Scoreboards"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_ARCHITECTURE" == true ]]; then
-            cd "$MODULE6_DIR/examples/architecture"
-            if ! run_python_example "architecture_example.py" "Testbench Architecture"; then
+            if ! run_python_example "architecture" "Testbench Architecture"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
     fi
     

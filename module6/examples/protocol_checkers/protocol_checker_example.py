@@ -4,6 +4,57 @@ Demonstrates protocol compliance checking.
 """
 
 from pyuvm import *
+# Explicitly import uvm_seq_item_pull_port - it may not be exported by from pyuvm import *
+# Try multiple possible import paths
+_uvm_seq_item_pull_port = None
+try:
+    # First try: check if it's in the namespace after from pyuvm import *
+    _uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
+except KeyError:
+    # Second try: import from pyuvm module directly
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_seq_item_pull_port'):
+        _uvm_seq_item_pull_port = pyuvm.uvm_seq_item_pull_port
+    else:
+        # Third try: try TLM module paths using __import__
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_seq_item_pull_port'])
+                if hasattr(tlm_module, 'uvm_seq_item_pull_port'):
+                    _uvm_seq_item_pull_port = tlm_module.uvm_seq_item_pull_port
+                    break
+            except (ImportError, AttributeError):
+                continue
+
+if _uvm_seq_item_pull_port is not None:
+    globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
+
+# Explicitly import uvm_analysis_imp - it may not be exported by from pyuvm import *
+# Try multiple possible import paths
+_uvm_analysis_imp = None
+try:
+    # First try: check if it's in the namespace after from pyuvm import *
+    _uvm_analysis_imp = globals()['uvm_analysis_imp']
+except KeyError:
+    # Second try: import from pyuvm module directly
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_analysis_imp'):
+        _uvm_analysis_imp = pyuvm.uvm_analysis_imp
+    else:
+        # Third try: try TLM module paths using __import__
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_analysis_imp'])
+                if hasattr(tlm_module, 'uvm_analysis_imp'):
+                    _uvm_analysis_imp = tlm_module.uvm_analysis_imp
+                    break
+            except (ImportError, AttributeError):
+                continue
+
+if _uvm_analysis_imp is not None:
+    globals()['uvm_analysis_imp'] = _uvm_analysis_imp
+import cocotb
+from cocotb.triggers import Timer
 
 
 class ProtocolTransaction(uvm_sequence_item):
@@ -124,7 +175,7 @@ class ProtocolMonitor(uvm_monitor):
             txn.timestamp = i * 10
             
             self.ap.write(txn)
-            await Timer(10, units="ns")
+            await Timer(10, unit="ns")
 
 
 class ProtocolEnv(uvm_env):
@@ -140,11 +191,12 @@ class ProtocolEnv(uvm_env):
         self.monitor.ap.connect(self.checker.ap)
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class ProtocolCheckerTest(uvm_test):
     """Test demonstrating protocol checker."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Protocol Checker Example Test")
         self.logger.info("=" * 60)
@@ -153,13 +205,25 @@ class ProtocolCheckerTest(uvm_test):
     async def run_phase(self):
         self.raise_objection()
         self.logger.info("Running protocol checker test")
-        await Timer(100, units="ns")
+        await Timer(100, unit="ns")
         self.drop_objection()
     
     def report_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Protocol checker test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_protocol_checker(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["ProtocolCheckerTest"] = ProtocolCheckerTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("ProtocolCheckerTest")
 
 
 if __name__ == "__main__":

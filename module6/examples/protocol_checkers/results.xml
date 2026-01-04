@@ -1,0 +1,8 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1767521093" />
+    <testcase name="test_protocol_checker" classname="protocol_checker_example" file="/mnt/d/proj/learn_uvm_pyuvm/module6/examples/protocol_checkers/protocol_checker_example.py" lineno="220" time="0.07718443870544434" sim_time_ns="0.0" ratio_time="0.0">
+      <failure error_type="NameError" error_msg="name 'uvm_analysis_imp' is not defined" />
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -4,6 +4,57 @@ Demonstrates layered testbench architecture and reusable components.
 """
 
 from pyuvm import *
+# Explicitly import uvm_seq_item_pull_port - it may not be exported by from pyuvm import *
+# Try multiple possible import paths
+_uvm_seq_item_pull_port = None
+try:
+    # First try: check if it's in the namespace after from pyuvm import *
+    _uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
+except KeyError:
+    # Second try: import from pyuvm module directly
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_seq_item_pull_port'):
+        _uvm_seq_item_pull_port = pyuvm.uvm_seq_item_pull_port
+    else:
+        # Third try: try TLM module paths using __import__
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_seq_item_pull_port'])
+                if hasattr(tlm_module, 'uvm_seq_item_pull_port'):
+                    _uvm_seq_item_pull_port = tlm_module.uvm_seq_item_pull_port
+                    break
+            except (ImportError, AttributeError):
+                continue
+
+if _uvm_seq_item_pull_port is not None:
+    globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
+
+# Explicitly import uvm_analysis_imp - it may not be exported by from pyuvm import *
+# Try multiple possible import paths
+_uvm_analysis_imp = None
+try:
+    # First try: check if it's in the namespace after from pyuvm import *
+    _uvm_analysis_imp = globals()['uvm_analysis_imp']
+except KeyError:
+    # Second try: import from pyuvm module directly
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_analysis_imp'):
+        _uvm_analysis_imp = pyuvm.uvm_analysis_imp
+    else:
+        # Third try: try TLM module paths using __import__
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_analysis_imp'])
+                if hasattr(tlm_module, 'uvm_analysis_imp'):
+                    _uvm_analysis_imp = tlm_module.uvm_analysis_imp
+                    break
+            except (ImportError, AttributeError):
+                continue
+
+if _uvm_analysis_imp is not None:
+    globals()['uvm_analysis_imp'] = _uvm_analysis_imp
+import cocotb
+from cocotb.triggers import Timer
 
 
 class ArchitectureTransaction(uvm_sequence_item):
@@ -35,7 +86,7 @@ class Layer0Component(uvm_component):
             txn.layer = 0
             self.logger.info(f"[{self.get_name()}] Layer 0: {txn}")
             self.ap.write(txn)
-            await Timer(10, units="ns")
+            await Timer(10, unit="ns")
 
 
 class Layer1Component(uvm_component):
@@ -65,7 +116,7 @@ class Layer1Component(uvm_component):
     async def run_phase(self):
         """Run phase - Layer 1 processing."""
         self.logger.info(f"[{self.get_name()}] Running Layer 1")
-        await Timer(50, units="ns")
+        await Timer(50, unit="ns")
 
 
 class Layer2Component(uvm_component):
@@ -142,7 +193,7 @@ class ReusableComponent(uvm_component):
         """Run phase - component operation."""
         if self.enabled:
             self.logger.info(f"[{self.get_name()}] Running in {self.mode} mode")
-            await Timer(10, units="ns")
+            await Timer(10, unit="ns")
         else:
             self.logger.info(f"[{self.get_name()}] Component disabled")
 
@@ -154,19 +205,31 @@ class ReusableEnv(uvm_env):
         self.logger.info("Building Reusable Environment")
         
         # Create multiple instances of reusable component with different configs
-        self.comp1 = ReusableComponent.create("comp1", self, config={'enabled': True, 'mode': 'normal'})
-        self.comp2 = ReusableComponent.create("comp2", self, config={'enabled': True, 'mode': 'debug'})
-        self.comp3 = ReusableComponent.create("comp3", self, config={'enabled': False, 'mode': 'normal'})
+        self.comp1 = ReusableComponent.create("comp1", self)
+        self.comp1.config = {'enabled': True, 'mode': 'normal'}
+        self.comp1.enabled = True
+        self.comp1.mode = 'normal'
+        
+        self.comp2 = ReusableComponent.create("comp2", self)
+        self.comp2.config = {'enabled': True, 'mode': 'debug'}
+        self.comp2.enabled = True
+        self.comp2.mode = 'debug'
+        
+        self.comp3 = ReusableComponent.create("comp3", self)
+        self.comp3.config = {'enabled': False, 'mode': 'normal'}
+        self.comp3.enabled = False
+        self.comp3.mode = 'normal'
     
     def connect_phase(self):
         self.logger.info("Connecting Reusable Environment")
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class ArchitectureTest(uvm_test):
     """Test demonstrating testbench architecture patterns."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Testbench Architecture Example Test")
         self.logger.info("=" * 60)
@@ -175,7 +238,7 @@ class ArchitectureTest(uvm_test):
     async def run_phase(self):
         self.raise_objection()
         self.logger.info("Running architecture test")
-        await Timer(100, units="ns")
+        await Timer(100, unit="ns")
         self.drop_objection()
     
     def report_phase(self):
@@ -184,11 +247,12 @@ class ArchitectureTest(uvm_test):
         self.logger.info("=" * 60)
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class ReusableTest(uvm_test):
     """Test demonstrating reusable components."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Reusable Component Example Test")
         self.logger.info("=" * 60)
@@ -197,13 +261,25 @@ class ReusableTest(uvm_test):
     async def run_phase(self):
         self.raise_objection()
         self.logger.info("Running reusable component test")
-        await Timer(50, units="ns")
+        await Timer(50, unit="ns")
         self.drop_objection()
     
     def report_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Reusable component test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_architecture(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["ArchitectureTest"] = ArchitectureTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("ArchitectureTest")
 
 
 if __name__ == "__main__":

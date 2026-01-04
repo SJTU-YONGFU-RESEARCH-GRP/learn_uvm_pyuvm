@@ -4,7 +4,55 @@ Demonstrates multi-agent environment with agent coordination.
 """
 
 from pyuvm import *
-import cocotb
+# Explicitly import uvm_seq_item_pull_port - it may not be exported by from pyuvm import *
+# Try multiple possible import paths
+_uvm_seq_item_pull_port = None
+try:
+    # First try: check if it's in the namespace after from pyuvm import *
+    _uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
+except KeyError:
+    # Second try: import from pyuvm module directly
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_seq_item_pull_port'):
+        _uvm_seq_item_pull_port = pyuvm.uvm_seq_item_pull_port
+    else:
+        # Third try: try TLM module paths using __import__
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_seq_item_pull_port'])
+                if hasattr(tlm_module, 'uvm_seq_item_pull_port'):
+                    _uvm_seq_item_pull_port = tlm_module.uvm_seq_item_pull_port
+                    break
+            except (ImportError, AttributeError):
+                continue
+
+if _uvm_seq_item_pull_port is not None:
+    globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
+
+# Explicitly import uvm_analysis_imp - it may not be exported by from pyuvm import *
+# Try multiple possible import paths
+_uvm_analysis_imp = None
+try:
+    # First try: check if it's in the namespace after from pyuvm import *
+    _uvm_analysis_imp = globals()['uvm_analysis_imp']
+except KeyError:
+    # Second try: import from pyuvm module directly
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_analysis_imp'):
+        _uvm_analysis_imp = pyuvm.uvm_analysis_imp
+    else:
+        # Third try: try TLM module paths using __import__
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_analysis_imp'])
+                if hasattr(tlm_module, 'uvm_analysis_imp'):
+                    _uvm_analysis_imp = tlm_module.uvm_analysis_imp
+                    break
+            except (ImportError, AttributeError):
+                continue
+
+if _uvm_analysis_imp is not None:
+    globals()['uvm_analysis_imp'] = _uvm_analysis_imp
 import cocotb
 from cocotb.triggers import Timer
 
@@ -60,7 +108,7 @@ class MultiAgentDriver(uvm_driver):
         while True:
             item = await self.seq_item_port.get_next_item()
             self.logger.info(f"[{self.get_name()}] Driving: {item}")
-            await Timer(10, units="ns")
+            await Timer(10, unit="ns")
             await self.seq_item_port.item_done()
 
 
@@ -76,7 +124,7 @@ class MultiAgentMonitor(uvm_monitor):
         self.logger.info(f"[{self.get_name()}] Starting monitor")
         
         while True:
-            await Timer(10, units="ns")
+            await Timer(10, unit="ns")
             txn = MultiAgentTransaction()
             txn.data = 0xAA
             txn.address = 0x1000
@@ -157,7 +205,8 @@ class MultiAgentEnv(uvm_env):
         # Create multiple agents
         self.agents = []
         for i in range(3):
-            agent = MultiAgentAgent.create(f"agent_{i}", self, agent_id=i)
+            agent = MultiAgentAgent.create(f"agent_{i}", self)
+            agent.agent_id = i
             self.agents.append(agent)
         
         # Create scoreboard
@@ -201,11 +250,12 @@ class MultiAgentVirtualSequence(uvm_sequence):
         self.logger.info("[VirtualSequence] Multi-agent coordination completed")
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class MultiAgentTest(uvm_test):
     """Test demonstrating multi-agent environment."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Multi-Agent Environment Example Test")
         self.logger.info("=" * 60)
@@ -222,13 +272,25 @@ class MultiAgentTest(uvm_test):
         # Start virtual sequence
         await virtual_seq.start(None)  # Virtual sequencer would be used here
         
-        await Timer(100, units="ns")
+        await Timer(100, unit="ns")
         self.drop_objection()
     
     def report_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Multi-agent test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_multi_agent(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["MultiAgentTest"] = MultiAgentTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("MultiAgentTest")
 
 
 if __name__ == "__main__":
