@@ -9,14 +9,23 @@ from cocotb.triggers import Timer, RisingEdge, FallingEdge
 from cocotb.binary import BinaryValue
 
 
-async def reset_dut(dut, duration_ns=50):
-    """Reset the DUT."""
+async def reset_dut(dut, duration_ns=50, propagation_delay_ns=10):
+    """
+    Reset the DUT.
+    
+    Args:
+        dut: Device under test
+        duration_ns: Reset duration in nanoseconds
+        propagation_delay_ns: Delay after deasserting reset to allow
+                              signal propagation and DUT stabilization
+    """
     dut.rst_n.value = 0
     dut.enable.value = 0
     dut.d.value = 0
     await Timer(duration_ns, units="ns")
     dut.rst_n.value = 1
-    await Timer(10, units="ns")
+    # Wait for reset signal to propagate through DUT logic
+    await Timer(propagation_delay_ns, units="ns")
 
 
 @cocotb.test()

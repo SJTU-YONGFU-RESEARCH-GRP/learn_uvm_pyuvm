@@ -1,10 +1,10 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767511430" />
-    <testcase name="test_clock_class" classname="clock_generation_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/clock_generation/clock_generation_example.py" lineno="22" time="0.00839686393737793" sim_time_ns="40.0" ratio_time="4763.68323916068" />
-    <testcase name="test_multiple_clocks" classname="clock_generation_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/clock_generation/clock_generation_example.py" lineno="41" time="0.0006344318389892578" sim_time_ns="50.00000000000001" ratio_time="78810.67267944383" />
-    <testcase name="test_clock_gating" classname="clock_generation_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/clock_generation/clock_generation_example.py" lineno="62" time="0.0008242130279541016" sim_time_ns="40.000000000000014" ratio_time="48531.142609198745" />
-    <testcase name="test_clock_stopping" classname="clock_generation_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/clock_generation/clock_generation_example.py" lineno="90" time="0.0003523826599121094" sim_time_ns="50.0" ratio_time="141891.2043301759" />
-    <testcase name="test_clock_division" classname="clock_generation_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/clock_generation/clock_generation_example.py" lineno="107" time="0.0005941390991210938" sim_time_ns="100.00000000000003" ratio_time="168310.75441412526" />
+    <property name="random_seed" value="1767520220" />
+    <testcase name="test_clock_class" classname="clock_generation_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/clock_generation/clock_generation_example.py" lineno="22" time="0.008574962615966797" sim_time_ns="40.0" ratio_time="4664.74336873714" />
+    <testcase name="test_multiple_clocks" classname="clock_generation_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/clock_generation/clock_generation_example.py" lineno="41" time="0.001455545425415039" sim_time_ns="50.00000000000001" ratio_time="34351.38411138412" />
+    <testcase name="test_clock_gating" classname="clock_generation_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/clock_generation/clock_generation_example.py" lineno="62" time="0.0005724430084228516" sim_time_ns="40.000000000000014" ratio_time="69875.9516867972" />
+    <testcase name="test_clock_stopping" classname="clock_generation_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/clock_generation/clock_generation_example.py" lineno="90" time="0.0006968975067138672" sim_time_ns="50.0" ratio_time="71746.56175162505" />
+    <testcase name="test_clock_division" classname="clock_generation_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/clock_generation/clock_generation_example.py" lineno="126" time="0.0007174015045166016" sim_time_ns="100.00000000000003" ratio_time="139391.9574609505" />
   </testsuite>
 </testsuites>

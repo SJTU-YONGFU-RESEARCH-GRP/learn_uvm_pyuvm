@@ -9,12 +9,21 @@ from cocotb.triggers import Timer, RisingEdge
 import random
 
 
-async def async_reset(dut, duration_ns=50):
-    """Async reset helper."""
+async def async_reset(dut, duration_ns=50, propagation_delay_ns=10):
+    """
+    Async reset helper.
+    
+    Args:
+        dut: Device under test
+        duration_ns: Reset duration in nanoseconds
+        propagation_delay_ns: Delay after deasserting reset to allow
+                              signal propagation and DUT stabilization
+    """
     dut.rst_n.value = 0
     await Timer(duration_ns, units="ns")
     dut.rst_n.value = 1
-    await Timer(10, units="ns")
+    # Wait for reset signal to propagate through DUT logic
+    await Timer(propagation_delay_ns, units="ns")
 
 
 class Scoreboard:
@@ -137,10 +146,16 @@ async def test_reference_model(dut):
     dut.enable.value = 1
     
     # Reference model (simple register)
+    # This models the expected behavior of the DUT
     reference_q = 0
     
+    # Test data pattern: using 0x11 (17 decimal) as multiplier
+    # creates interesting test values: 0x00, 0x11, 0x22, 0x33, 0x44
+    # This pattern exercises different bit combinations
+    DATA_PATTERN_MULTIPLIER = 0x11
+    
     for i in range(5):
-        data = i * 0x11
+        data = i * DATA_PATTERN_MULTIPLIER
         dut.d.value = data
         
         # Update reference model

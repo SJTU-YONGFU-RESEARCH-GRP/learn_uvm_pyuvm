@@ -1,9 +1,9 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767511459" />
-    <testcase name="test_async_reset" classname="reset_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/reset_patterns/reset_patterns_example.py" lineno="53" time="0.01268148422241211" sim_time_ns="60.0" ratio_time="4731.307388606881" />
-    <testcase name="test_sync_reset" classname="reset_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/reset_patterns/reset_patterns_example.py" lineno="73" time="0.0025589466094970703" sim_time_ns="41.00000000000001" ratio_time="16022.217832851955" />
-    <testcase name="test_reset_verification" classname="reset_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/reset_patterns/reset_patterns_example.py" lineno="118" time="0.0015287399291992188" sim_time_ns="41.000000000000014" ratio_time="26819.47348721149" />
-    <testcase name="test_reset_initialization" classname="reset_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/reset_patterns/reset_patterns_example.py" lineno="154" time="0.0009505748748779297" sim_time_ns="61.0" ratio_time="64171.69400551794" />
+    <property name="random_seed" value="1767520240" />
+    <testcase name="test_async_reset" classname="reset_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/reset_patterns/reset_patterns_example.py" lineno="57" time="0.012899398803710938" sim_time_ns="60.0" ratio_time="4651.37956528168" />
+    <testcase name="test_sync_reset" classname="reset_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/reset_patterns/reset_patterns_example.py" lineno="77" time="0.000720977783203125" sim_time_ns="41.00000000000001" ratio_time="56867.21693121694" />
+    <testcase name="test_reset_verification" classname="reset_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/reset_patterns/reset_patterns_example.py" lineno="122" time="0.000972747802734375" sim_time_ns="41.000000000000014" ratio_time="42148.64313725492" />
+    <testcase name="test_reset_initialization" classname="reset_patterns_example" file="/mnt/d/proj/learn_uvm_pyuvm/module2/examples/reset_patterns/reset_patterns_example.py" lineno="158" time="0.0004622936248779297" sim_time_ns="61.0" ratio_time="131950.77050025787" />
   </testsuite>
 </testsuites>

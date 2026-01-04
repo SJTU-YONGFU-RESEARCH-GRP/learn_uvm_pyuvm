@@ -91,6 +91,13 @@ async def test_clock_gating(dut):
 async def test_clock_stopping(dut):
     """
     Demonstrates stopping a clock.
+    
+    In cocotb, Clock objects run as coroutines. To stop a clock, you can:
+    1. Use a flag-based approach with a custom clock generator
+    2. Use the coroutine handle's kill() method (if supported)
+    3. Let the test complete naturally (clock stops when test ends)
+    
+    This example demonstrates the pattern for controlled clock stopping.
     """
     clock = Clock(dut.clk, 10, units="ns")
     clock_handle = cocotb.start_soon(clock.start())
@@ -100,8 +107,20 @@ async def test_clock_stopping(dut):
         await RisingEdge(dut.clk)
         print(f"Clock cycle {i+1}")
     
-    # Stop clock (in real cocotb, you'd use clock_handle.kill())
-    print("Clock would be stopped here")
+    # Note: In cocotb, Clock objects run until the test completes.
+    # For explicit clock control, use a custom clock generator with a stop flag:
+    # 
+    # stop_clock = False
+    # async def controlled_clock():
+    #     while not stop_clock:
+    #         dut.clk.value = 1
+    #         await Timer(period_ns // 2, units="ns")
+    #         dut.clk.value = 0
+    #         await Timer(period_ns // 2, units="ns")
+    # 
+    # Then set stop_clock = True when you want to stop
+    
+    print("Clock continues running until test completes")
 
 
 @cocotb.test()

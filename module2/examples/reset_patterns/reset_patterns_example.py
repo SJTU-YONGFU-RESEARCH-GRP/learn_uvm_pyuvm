@@ -8,13 +8,15 @@ from cocotb.clock import Clock
 from cocotb.triggers import Timer, RisingEdge, FallingEdge
 
 
-async def async_reset(dut, duration_ns=100):
+async def async_reset(dut, duration_ns=100, propagation_delay_ns=10):
     """
     Asynchronous reset sequence.
     
     Args:
         dut: Device under test
         duration_ns: Reset duration in nanoseconds
+        propagation_delay_ns: Delay after deasserting reset to allow
+                              signal propagation and DUT stabilization
     """
     print("Asserting async reset...")
     dut.rst_n.value = 0
@@ -22,7 +24,9 @@ async def async_reset(dut, duration_ns=100):
     
     print("Deasserting async reset...")
     dut.rst_n.value = 1
-    await Timer(10, units="ns")  # Wait for reset to propagate
+    # Wait for reset signal to propagate through DUT logic
+    # This ensures all flip-flops have stabilized before continuing
+    await Timer(propagation_delay_ns, units="ns")
     print("Reset complete")
 
 
@@ -62,7 +66,7 @@ async def test_async_reset(dut):
     dut.enable.value = 0
     dut.d.value = 0
     
-    # Apply async reset
+    # Apply async reset with default propagation delay
     await async_reset(dut, duration_ns=50)
     
     # Verify reset state
@@ -159,7 +163,7 @@ async def test_reset_initialization(dut):
     clock = Clock(dut.clk, 10, units="ns")
     cocotb.start_soon(clock.start())
     
-    # Apply reset
+    # Apply reset with default propagation delay
     await async_reset(dut, duration_ns=50)
     
     # Initialize signals
