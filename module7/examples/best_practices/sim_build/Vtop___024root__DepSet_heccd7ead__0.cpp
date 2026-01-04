@@ -25,11 +25,11 @@ VL_INLINE_OPT void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) 
     vlSelfRef.simple_dma__DOT__clk = vlSelfRef.clk;
     vlSelfRef.simple_dma__DOT__rst_n = vlSelfRef.rst_n;
     vlSelfRef.simple_dma__DOT__dma_start = vlSelfRef.dma_start;
+    vlSelfRef.dma_done = vlSelfRef.simple_dma__DOT__dma_done;
     vlSelfRef.simple_dma__DOT__dma_src_addr = vlSelfRef.dma_src_addr;
     vlSelfRef.simple_dma__DOT__dma_dst_addr = vlSelfRef.dma_dst_addr;
     vlSelfRef.simple_dma__DOT__dma_length = vlSelfRef.dma_length;
     vlSelfRef.simple_dma__DOT__dma_channel = vlSelfRef.dma_channel;
-    vlSelfRef.dma_done = vlSelfRef.simple_dma__DOT__dma_done;
 }
 
 void Vtop___024root___eval_triggers__ico(Vtop___024root* vlSelf);
@@ -79,15 +79,16 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     // Body
     __Vdly__simple_dma__DOT__length_reg = vlSelfRef.simple_dma__DOT__length_reg;
     __Vdly__simple_dma__DOT__count = vlSelfRef.simple_dma__DOT__count;
-    if (vlSelfRef.rst_n) {
-        if (((IData)(vlSelfRef.dma_start) & (~ (IData)(vlSelfRef.simple_dma__DOT__dma_done)))) {
+    if (vlSelfRef.simple_dma__DOT__rst_n) {
+        if (((IData)(vlSelfRef.simple_dma__DOT__dma_start) 
+             & (~ (IData)(vlSelfRef.simple_dma__DOT__dma_done)))) {
             vlSelfRef.simple_dma__DOT__src_addr_reg 
-                = vlSelfRef.dma_src_addr;
+                = vlSelfRef.simple_dma__DOT__dma_src_addr;
             vlSelfRef.simple_dma__DOT__dst_addr_reg 
-                = vlSelfRef.dma_dst_addr;
-            __Vdly__simple_dma__DOT__length_reg = vlSelfRef.dma_length;
+                = vlSelfRef.simple_dma__DOT__dma_dst_addr;
+            __Vdly__simple_dma__DOT__length_reg = vlSelfRef.simple_dma__DOT__dma_length;
             vlSelfRef.simple_dma__DOT__channel_reg 
-                = vlSelfRef.dma_channel;
+                = vlSelfRef.simple_dma__DOT__dma_channel;
             __Vdly__simple_dma__DOT__count = 0U;
         } else if (vlSelfRef.simple_dma__DOT__dma_done) {
             if (vlSelfRef.simple_dma__DOT__dma_done) {

@@ -4,30 +4,8 @@ Demonstrates complete DMA controller verification environment.
 """
 
 from pyuvm import *
-# Explicitly import uvm_seq_item_pull_port - it may not be exported by from pyuvm import *
-# Try multiple possible import paths (pattern from module4/agents)
-_uvm_seq_item_pull_port = None
-try:
-    # First try: check if it's in the namespace after from pyuvm import *
-    _uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
-except KeyError:
-    # Second try: import from pyuvm module directly
-    import pyuvm
-    if hasattr(pyuvm, 'uvm_seq_item_pull_port'):
-        _uvm_seq_item_pull_port = pyuvm.uvm_seq_item_pull_port
-    else:
-        # Third try: try TLM module paths
-        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
-            try:
-                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_seq_item_pull_port'])
-                if hasattr(tlm_module, 'uvm_seq_item_pull_port'):
-                    _uvm_seq_item_pull_port = tlm_module.uvm_seq_item_pull_port
-                    break
-            except (ImportError, AttributeError):
-                continue
-
-if _uvm_seq_item_pull_port is not None:
-    globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
+# Use uvm_seq_item_port (pyuvm doesn't have uvm_seq_item_pull_port)
+uvm_seq_item_pull_port = uvm_seq_item_port
 
 # Explicitly import uvm_analysis_imp - it may not be exported by from pyuvm import *
 # Try multiple possible import paths (pattern from module4/agents)
@@ -80,7 +58,7 @@ class DMASequence(uvm_sequence):
     
     async def body(self):
         """Generate DMA transfer transactions."""
-        self.logger.info(f"[{self.get_name()}] Starting DMA sequence")
+        print(f"[{self.get_name()}] Starting DMA sequence")
         
         # Simple transfer
         txn = DMATransaction()
@@ -108,7 +86,7 @@ class DMARegisterDriver(uvm_driver):
     
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building DMA register driver")
-        self.seq_item_port = uvm_seq_item_pull_port("seq_item_port", self)
+        self.seq_item_port = uvm_seq_item_pull_port("dma_driver_seq_item_port", self)
     
     async def run_phase(self):
         """Run phase - drive DMA register transactions."""
@@ -125,7 +103,7 @@ class DMARegisterDriver(uvm_driver):
             # In real code: cocotb.dut.dma_start.value = 1
             
             await Timer(10, unit="ns")
-            await self.seq_item_port.item_done()
+            self.seq_item_port.item_done()
 
 
 class DMAMonitor(uvm_monitor):
@@ -157,14 +135,11 @@ class DMAMonitor(uvm_monitor):
             self.ap.write(txn)
 
 
-class DMAScoreboard(uvm_scoreboard):
+class DMAScoreboard(uvm_subscriber):
     """Scoreboard for DMA verification."""
-    
-    def build_phase(self):
-        self.logger.info(f"[{self.get_name()}] Building DMA scoreboard")
-        self.ap = uvm_analysis_export("ap", self)
-        self.imp = uvm_analysis_imp("imp", self)
-        self.ap.connect(self.imp)
+
+    def __init__(self, name="DMAScoreboard", parent=None):
+        super().__init__(name, parent)
         self.expected = []
         self.actual = []
         self.mismatches = []
@@ -207,10 +182,8 @@ class DMACoverage(uvm_subscriber):
         }
     
     def build_phase(self):
-        """Build phase - create analysis ports."""
-        self.ap = uvm_analysis_export("ap", self)
-        self.imp = uvm_analysis_imp("imp", self)
-        self.ap.connect(self.imp)
+        """Build phase - uvm_subscriber provides analysis_export automatically."""
+        pass
     
     def write(self, txn):
         """Sample coverage."""
@@ -258,8 +231,8 @@ class DMAEnv(uvm_env):
     
     def connect_phase(self):
         self.logger.info("Connecting DMA Environment")
-        self.monitor.ap.connect(self.scoreboard.ap)
-        self.monitor.ap.connect(self.coverage.ap)
+        self.monitor.ap.connect(self.scoreboard.analysis_export)
+        self.monitor.ap.connect(self.coverage.analysis_export)
 
 
 # Note: @uvm_test() decorator removed to avoid import-time TypeError

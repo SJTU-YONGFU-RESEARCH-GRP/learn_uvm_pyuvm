@@ -1,8 +1,6 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767522374" />
-    <testcase name="test_dma" classname="dma_example" file="/mnt/d/proj/learn_uvm_pyuvm/module7/examples/dma/dma_example.py" lineno="335" time="0.04401755332946777" sim_time_ns="0.0" ratio_time="0.0">
-      <failure error_type="NameError" error_msg="name 'uvm_seq_item_pull_port' is not defined" />
-    </testcase>
+    <property name="random_seed" value="1767533524" />
+    <testcase name="test_dma" classname="dma_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module7/examples/dma/dma_example.py" lineno="283" time="0.005530118942260742" sim_time_ns="120.0" ratio_time="21699.352446647983" />
   </testsuite>
 </testsuites>

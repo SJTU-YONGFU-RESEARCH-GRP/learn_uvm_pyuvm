@@ -10,8 +10,10 @@ VL_ATTR_COLD void Vtop___024root___eval_static(Vtop___024root* vlSelf) {
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelfRef.__Vtrigprevexpr___TOP__clk__0 = vlSelfRef.clk;
-    vlSelfRef.__Vtrigprevexpr___TOP__rst_n__0 = vlSelfRef.rst_n;
+    vlSelfRef.__Vtrigprevexpr___TOP__simple_dma__DOT__clk__0 
+        = vlSelfRef.simple_dma__DOT__clk;
+    vlSelfRef.__Vtrigprevexpr___TOP__simple_dma__DOT__rst_n__0 
+        = vlSelfRef.simple_dma__DOT__rst_n;
 }
 
 VL_ATTR_COLD void Vtop___024root___eval_initial(Vtop___024root* vlSelf) {
@@ -127,10 +129,10 @@ VL_ATTR_COLD void Vtop___024root___dump_triggers__act(Vtop___024root* vlSelf) {
         VL_DBG_MSGF("         No triggers active\n");
     }
     if ((1ULL & vlSelfRef.__VactTriggered.word(0U))) {
-        VL_DBG_MSGF("         'act' region trigger index 0 is active: @(posedge clk)\n");
+        VL_DBG_MSGF("         'act' region trigger index 0 is active: @(posedge simple_dma.clk)\n");
     }
     if ((2ULL & vlSelfRef.__VactTriggered.word(0U))) {
-        VL_DBG_MSGF("         'act' region trigger index 1 is active: @(negedge rst_n)\n");
+        VL_DBG_MSGF("         'act' region trigger index 1 is active: @(negedge simple_dma.rst_n)\n");
     }
 }
 #endif  // VL_DEBUG
@@ -145,10 +147,10 @@ VL_ATTR_COLD void Vtop___024root___dump_triggers__nba(Vtop___024root* vlSelf) {
         VL_DBG_MSGF("         No triggers active\n");
     }
     if ((1ULL & vlSelfRef.__VnbaTriggered.word(0U))) {
-        VL_DBG_MSGF("         'nba' region trigger index 0 is active: @(posedge clk)\n");
+        VL_DBG_MSGF("         'nba' region trigger index 0 is active: @(posedge simple_dma.clk)\n");
     }
     if ((2ULL & vlSelfRef.__VnbaTriggered.word(0U))) {
-        VL_DBG_MSGF("         'nba' region trigger index 1 is active: @(negedge rst_n)\n");
+        VL_DBG_MSGF("         'nba' region trigger index 1 is active: @(negedge simple_dma.rst_n)\n");
     }
 }
 #endif  // VL_DEBUG
@@ -158,27 +160,28 @@ VL_ATTR_COLD void Vtop___024root___ctor_var_reset(Vtop___024root* vlSelf) {
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelf->clk = VL_RAND_RESET_I(1);
-    vlSelf->rst_n = VL_RAND_RESET_I(1);
-    vlSelf->dma_start = VL_RAND_RESET_I(1);
-    vlSelf->dma_done = VL_RAND_RESET_I(1);
-    vlSelf->dma_src_addr = VL_RAND_RESET_I(32);
-    vlSelf->dma_dst_addr = VL_RAND_RESET_I(32);
-    vlSelf->dma_length = VL_RAND_RESET_I(16);
-    vlSelf->dma_channel = VL_RAND_RESET_I(3);
-    vlSelf->simple_dma__DOT__clk = VL_RAND_RESET_I(1);
-    vlSelf->simple_dma__DOT__rst_n = VL_RAND_RESET_I(1);
-    vlSelf->simple_dma__DOT__dma_start = VL_RAND_RESET_I(1);
-    vlSelf->simple_dma__DOT__dma_done = VL_RAND_RESET_I(1);
-    vlSelf->simple_dma__DOT__dma_src_addr = VL_RAND_RESET_I(32);
-    vlSelf->simple_dma__DOT__dma_dst_addr = VL_RAND_RESET_I(32);
-    vlSelf->simple_dma__DOT__dma_length = VL_RAND_RESET_I(16);
-    vlSelf->simple_dma__DOT__dma_channel = VL_RAND_RESET_I(3);
-    vlSelf->simple_dma__DOT__src_addr_reg = VL_RAND_RESET_I(32);
-    vlSelf->simple_dma__DOT__dst_addr_reg = VL_RAND_RESET_I(32);
-    vlSelf->simple_dma__DOT__length_reg = VL_RAND_RESET_I(16);
-    vlSelf->simple_dma__DOT__channel_reg = VL_RAND_RESET_I(3);
-    vlSelf->simple_dma__DOT__count = VL_RAND_RESET_I(16);
-    vlSelf->__Vtrigprevexpr___TOP__clk__0 = VL_RAND_RESET_I(1);
-    vlSelf->__Vtrigprevexpr___TOP__rst_n__0 = VL_RAND_RESET_I(1);
+    const uint64_t __VscopeHash = VL_MURMUR64_HASH(vlSelf->name());
+    vlSelf->clk = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 16707436170211756652ull);
+    vlSelf->rst_n = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 1638864771569018232ull);
+    vlSelf->dma_start = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 4393136156052734320ull);
+    vlSelf->dma_done = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 2996778355584335120ull);
+    vlSelf->dma_src_addr = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 3513935004971436176ull);
+    vlSelf->dma_dst_addr = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 2826994158666866718ull);
+    vlSelf->dma_length = VL_SCOPED_RAND_RESET_I(16, __VscopeHash, 4942991477412797479ull);
+    vlSelf->dma_channel = VL_SCOPED_RAND_RESET_I(3, __VscopeHash, 16447802703073874515ull);
+    vlSelf->simple_dma__DOT__clk = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 10175845783631095183ull);
+    vlSelf->simple_dma__DOT__rst_n = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 4691720986268219837ull);
+    vlSelf->simple_dma__DOT__dma_start = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 220653835096517003ull);
+    vlSelf->simple_dma__DOT__dma_done = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 12270994580939234309ull);
+    vlSelf->simple_dma__DOT__dma_src_addr = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 14931477359236615833ull);
+    vlSelf->simple_dma__DOT__dma_dst_addr = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 6031636104429953974ull);
+    vlSelf->simple_dma__DOT__dma_length = VL_SCOPED_RAND_RESET_I(16, __VscopeHash, 2341932169030179526ull);
+    vlSelf->simple_dma__DOT__dma_channel = VL_SCOPED_RAND_RESET_I(3, __VscopeHash, 7646015195270956103ull);
+    vlSelf->simple_dma__DOT__src_addr_reg = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 146582644524097238ull);
+    vlSelf->simple_dma__DOT__dst_addr_reg = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 11432822102004197534ull);
+    vlSelf->simple_dma__DOT__length_reg = VL_SCOPED_RAND_RESET_I(16, __VscopeHash, 12537764725444324907ull);
+    vlSelf->simple_dma__DOT__channel_reg = VL_SCOPED_RAND_RESET_I(3, __VscopeHash, 17722026716337517293ull);
+    vlSelf->simple_dma__DOT__count = VL_SCOPED_RAND_RESET_I(16, __VscopeHash, 1239016971837331324ull);
+    vlSelf->__Vtrigprevexpr___TOP__simple_dma__DOT__clk__0 = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 7801943655316679316ull);
+    vlSelf->__Vtrigprevexpr___TOP__simple_dma__DOT__rst_n__0 = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 8418837284997242345ull);
 }

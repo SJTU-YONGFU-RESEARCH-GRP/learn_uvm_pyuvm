@@ -5,25 +5,8 @@ Demonstrates SPI protocol verification with master-slave coordination.
 
 from pyuvm import *
 
-# Explicitly import TLM classes that may not be in __all__
-# Try direct imports from known TLM module paths
-try:
-    from pyuvm.s15_uvm_tlm_1 import uvm_seq_item_pull_port
-except (ImportError, AttributeError):
-    try:
-        from pyuvm.s15_uvm_tlm import uvm_seq_item_pull_port
-    except (ImportError, AttributeError):
-        try:
-            from pyuvm.s16_uvm_tlm_1 import uvm_seq_item_pull_port
-        except (ImportError, AttributeError):
-            try:
-                from pyuvm.s16_uvm_tlm import uvm_seq_item_pull_port
-            except (ImportError, AttributeError):
-                # If all imports fail, try to get from globals (might be available from pyuvm import *)
-                try:
-                    uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
-                except KeyError:
-                    pass
+# Use uvm_seq_item_port (pyuvm doesn't have uvm_seq_item_pull_port)
+uvm_seq_item_pull_port = uvm_seq_item_port
 
 import cocotb
 from cocotb.triggers import Timer, RisingEdge
@@ -48,8 +31,9 @@ class SPIDriver(uvm_driver):
     """Driver for SPI protocol."""
     
     def build_phase(self):
+        super().build_phase()
         self.logger.info(f"[{self.get_name()}] Building SPI driver")
-        self.seq_item_port = uvm_seq_item_pull_port("seq_item_port", self)
+        self.seq_item_port = uvm_seq_item_pull_port("spi_driver_seq_item_port", self)
     
     async def run_phase(self):
         """Run phase - implement SPI transmission."""
@@ -70,7 +54,7 @@ class SPIDriver(uvm_driver):
             # In real code: cocotb.dut.cs.value = 1  # Deassert CS
             
             await Timer(100, unit="ns")
-            await self.seq_item_port.item_done()
+            self.seq_item_port.item_done()
 
 
 class SPIMonitor(uvm_monitor):
@@ -107,12 +91,14 @@ class SPIAgent(uvm_agent):
     """Agent for SPI protocol."""
     
     def build_phase(self):
+        super().build_phase()
         self.logger.info("Building SPI agent")
         self.driver = SPIDriver.create("driver", self)
         self.monitor = SPIMonitor.create("monitor", self)
         self.seqr = uvm_sequencer("sequencer", self)
-    
+
     def connect_phase(self):
+        super().connect_phase()
         self.driver.seq_item_port.connect(self.seqr.seq_item_export)
 
 

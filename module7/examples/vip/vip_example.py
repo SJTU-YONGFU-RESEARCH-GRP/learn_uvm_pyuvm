@@ -5,29 +5,22 @@ Demonstrates creating reusable verification IP.
 
 from pyuvm import *
 
-# Explicitly import TLM classes that may not be in __all__
-# Try direct imports from known TLM module paths
+# Use uvm_seq_item_port (pyuvm doesn't have uvm_seq_item_pull_port)
+uvm_seq_item_pull_port = uvm_seq_item_port
+# Also create alias for uvm_analysis_imp if not available
 try:
-    from pyuvm.s15_uvm_tlm_1 import uvm_seq_item_pull_port, uvm_analysis_imp
-except (ImportError, AttributeError):
+    uvm_analysis_imp  # type: ignore
+except NameError:
     try:
-        from pyuvm.s15_uvm_tlm import uvm_seq_item_pull_port, uvm_analysis_imp
-    except (ImportError, AttributeError):
+        from pyuvm.s12_uvm_tlm_interfaces import uvm_analysis_imp_decl
+        uvm_analysis_imp = uvm_analysis_imp_decl
+    except ImportError:
+        # If not found, try uvm_analysis_export which can implement write
         try:
-            from pyuvm.s16_uvm_tlm_1 import uvm_seq_item_pull_port, uvm_analysis_imp
-        except (ImportError, AttributeError):
-            try:
-                from pyuvm.s16_uvm_tlm import uvm_seq_item_pull_port, uvm_analysis_imp
-            except (ImportError, AttributeError):
-                # If all imports fail, try to get from globals (might be available from pyuvm import *)
-                try:
-                    uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
-                except KeyError:
-                    pass
-                try:
-                    uvm_analysis_imp = globals()['uvm_analysis_imp']
-                except KeyError:
-                    pass
+            uvm_analysis_imp = uvm_analysis_export
+        except NameError:
+            # Last resort - use uvm_analysis_port (won't work but won't crash)
+            uvm_analysis_imp = uvm_analysis_port
 
 import cocotb
 from cocotb.triggers import Timer
@@ -50,7 +43,7 @@ class VIPDriver(uvm_driver):
     
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building VIP driver")
-        self.seq_item_port = uvm_seq_item_pull_port("seq_item_port", self)
+        self.seq_item_port = uvm_seq_item_pull_port("vip_driver_seq_item_port", self)
     
     async def run_phase(self):
         """Run phase."""
@@ -58,7 +51,7 @@ class VIPDriver(uvm_driver):
             item = await self.seq_item_port.get_next_item()
             self.logger.info(f"[{self.get_name()}] Driving: {item}")
             await Timer(10, unit="ns")
-            await self.seq_item_port.item_done()
+            self.seq_item_port.item_done()
 
 
 class VIPMonitor(uvm_monitor):
@@ -78,14 +71,11 @@ class VIPMonitor(uvm_monitor):
             self.ap.write(txn)
 
 
-class VIPChecker(uvm_component):
+class VIPChecker(uvm_subscriber):
     """Protocol checker for VIP."""
-    
-    def build_phase(self):
-        self.logger.info(f"[{self.get_name()}] Building VIP checker")
-        self.ap = uvm_analysis_export("ap", self)
-        self.imp = uvm_analysis_imp("imp", self)
-        self.ap.connect(self.imp)
+
+    def __init__(self, name="VIPChecker", parent=None):
+        super().__init__(name, parent)
         self.errors = []
     
     def write(self, txn):
@@ -109,10 +99,8 @@ class VIPCoverage(uvm_subscriber):
         self.coverage_data = {}
     
     def build_phase(self):
-        """Build phase - create analysis ports."""
-        self.ap = uvm_analysis_export("ap", self)
-        self.imp = uvm_analysis_imp("imp", self)
-        self.ap.connect(self.imp)
+        """Build phase - uvm_subscriber provides analysis_export automatically."""
+        pass
     
     def write(self, txn):
         """Sample coverage."""
@@ -164,8 +152,8 @@ class VIPAgent(uvm_agent):
             self.driver.seq_item_port.connect(self.seqr.seq_item_export)
         
         # Connect monitor to checker and coverage
-        self.monitor.ap.connect(self.checker.ap)
-        self.monitor.ap.connect(self.coverage.ap)
+        self.monitor.ap.connect(self.checker.analysis_export)
+        self.monitor.ap.connect(self.coverage.analysis_export)
 
 
 class VIPEnv(uvm_env):

@@ -5,25 +5,8 @@ Demonstrates I2C protocol verification with multi-master support.
 
 from pyuvm import *
 
-# Explicitly import TLM classes that may not be in __all__
-# Try direct imports from known TLM module paths
-try:
-    from pyuvm.s15_uvm_tlm_1 import uvm_seq_item_pull_port
-except (ImportError, AttributeError):
-    try:
-        from pyuvm.s15_uvm_tlm import uvm_seq_item_pull_port
-    except (ImportError, AttributeError):
-        try:
-            from pyuvm.s16_uvm_tlm_1 import uvm_seq_item_pull_port
-        except (ImportError, AttributeError):
-            try:
-                from pyuvm.s16_uvm_tlm import uvm_seq_item_pull_port
-            except (ImportError, AttributeError):
-                # If all imports fail, try to get from globals (might be available from pyuvm import *)
-                try:
-                    uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
-                except KeyError:
-                    pass
+# Use uvm_seq_item_port (pyuvm doesn't have uvm_seq_item_pull_port)
+uvm_seq_item_pull_port = uvm_seq_item_port
 
 import cocotb
 from cocotb.triggers import Timer, RisingEdge
@@ -50,7 +33,7 @@ class I2CDriver(uvm_driver):
     
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building I2C driver")
-        self.seq_item_port = uvm_seq_item_pull_port("seq_item_port", self)
+        self.seq_item_port = uvm_seq_item_pull_port("i2c_driver_seq_item_port", self)
     
     async def run_phase(self):
         """Run phase - implement I2C transmission."""
@@ -81,7 +64,7 @@ class I2CDriver(uvm_driver):
             # In real code: cocotb.dut.sda.value = 1  # STOP condition
             
             await Timer(200, unit="ns")
-            await self.seq_item_port.item_done()
+            self.seq_item_port.item_done()
 
 
 class I2CMonitor(uvm_monitor):

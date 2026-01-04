@@ -5,25 +5,8 @@ Demonstrates UART protocol verification agent.
 
 from pyuvm import *
 
-# Explicitly import TLM classes that may not be in __all__
-# Try direct imports from known TLM module paths
-try:
-    from pyuvm.s15_uvm_tlm_1 import uvm_seq_item_pull_port
-except (ImportError, AttributeError):
-    try:
-        from pyuvm.s15_uvm_tlm import uvm_seq_item_pull_port
-    except (ImportError, AttributeError):
-        try:
-            from pyuvm.s16_uvm_tlm_1 import uvm_seq_item_pull_port
-        except (ImportError, AttributeError):
-            try:
-                from pyuvm.s16_uvm_tlm import uvm_seq_item_pull_port
-            except (ImportError, AttributeError):
-                # If all imports fail, try to get from globals (might be available from pyuvm import *)
-                try:
-                    uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
-                except KeyError:
-                    pass
+# Use uvm_seq_item_port (pyuvm doesn't have uvm_seq_item_pull_port)
+uvm_seq_item_pull_port = uvm_seq_item_port
 
 import cocotb
 from cocotb.triggers import Timer, RisingEdge
@@ -48,7 +31,7 @@ class UARTDriver(uvm_driver):
     
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building UART driver")
-        self.seq_item_port = uvm_seq_item_pull_port("seq_item_port", self)
+        self.seq_item_port = uvm_seq_item_pull_port("uart_driver_seq_item_port", self)
     
     async def run_phase(self):
         """Run phase - implement UART transmission."""
@@ -68,7 +51,7 @@ class UARTDriver(uvm_driver):
             # In real code: await Timer(bit_time, units="ns")
             
             await Timer(100, unit="ns")  # Simulated transmission time
-            await self.seq_item_port.item_done()
+            self.seq_item_port.item_done()
 
 
 class UARTMonitor(uvm_monitor):

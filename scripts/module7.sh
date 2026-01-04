@@ -163,15 +163,21 @@ run_python_example() {
         return 1
     fi
     
+    # Set library path for cocotb VPI libraries
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(cocotb-config --lib-dir)"
+
     # Run with cocotb using make
     cd "$MODULE7_DIR/examples/$example_dir"
-    
+
+    # Clean previous build to avoid path issues
+    make clean > /dev/null 2>&1 || true
+
     # For protocols directory, clean sim_build to avoid TOPLEVEL conflicts
     if [[ -n "$module_name" ]] && [[ "$example_dir" == "protocols" ]]; then
         print_status $YELLOW "Cleaning sim_build to avoid TOPLEVEL conflicts..."
         rm -rf sim_build
     fi
-    
+
     print_status $BLUE "Running pyuvm test for $example_name..."
     if [[ -n "$module_name" ]]; then
         # For protocols directory, specify MODULE
@@ -201,13 +207,19 @@ run_python_example() {
 # Function to run pyuvm tests
 run_pyuvm_tests() {
     print_header "Running pyuvm Tests"
-    
+
     if [[ "$USE_VENV" == true ]] && [[ -d "$VENV_DIR" ]] && [[ -f "$VENV_DIR/bin/activate" ]]; then
         source "$VENV_DIR/bin/activate"
     fi
-    
+
+    # Set library path for cocotb VPI libraries
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(cocotb-config --lib-dir)"
+
     cd "$MODULE7_DIR/tests/pyuvm_tests"
-    
+
+    # Clean previous build to avoid path issues
+    make clean > /dev/null 2>&1 || true
+
     print_status $BLUE "Running real-world application test..."
     if make SIM="$SIMULATOR" TEST=test_real_world 2>&1 | tee /tmp/pyuvm_test.log; then
         print_status $GREEN "✓ pyuvm test passed"
