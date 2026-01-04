@@ -83,6 +83,10 @@ module uart (
                     tx_state <= TX_IDLE;
                     tx_busy <= 1'b0;
                 end
+                default: begin
+                    tx_state <= TX_IDLE;
+                    tx_busy <= 1'b0;
+                end
             endcase
         end
     end
@@ -119,6 +123,10 @@ module uart (
                     rx_data <= rx_shift;
                     rx_ready <= 1'b1;
                     rx_state <= RX_IDLE;
+                end
+                default: begin
+                    rx_state <= RX_IDLE;
+                    rx_ready <= 1'b0;
                 end
             endcase
         end

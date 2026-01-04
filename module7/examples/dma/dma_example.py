@@ -4,6 +4,56 @@ Demonstrates complete DMA controller verification environment.
 """
 
 from pyuvm import *
+# Explicitly import uvm_seq_item_pull_port - it may not be exported by from pyuvm import *
+# Try multiple possible import paths (pattern from module4/agents)
+_uvm_seq_item_pull_port = None
+try:
+    # First try: check if it's in the namespace after from pyuvm import *
+    _uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
+except KeyError:
+    # Second try: import from pyuvm module directly
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_seq_item_pull_port'):
+        _uvm_seq_item_pull_port = pyuvm.uvm_seq_item_pull_port
+    else:
+        # Third try: try TLM module paths
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_seq_item_pull_port'])
+                if hasattr(tlm_module, 'uvm_seq_item_pull_port'):
+                    _uvm_seq_item_pull_port = tlm_module.uvm_seq_item_pull_port
+                    break
+            except (ImportError, AttributeError):
+                continue
+
+if _uvm_seq_item_pull_port is not None:
+    globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
+
+# Explicitly import uvm_analysis_imp - it may not be exported by from pyuvm import *
+# Try multiple possible import paths (pattern from module4/agents)
+_uvm_analysis_imp = None
+try:
+    # First try: check if it's in the namespace after from pyuvm import *
+    _uvm_analysis_imp = globals()['uvm_analysis_imp']
+except KeyError:
+    # Second try: import from pyuvm module directly
+    import pyuvm
+    if hasattr(pyuvm, 'uvm_analysis_imp'):
+        _uvm_analysis_imp = pyuvm.uvm_analysis_imp
+    else:
+        # Third try: try TLM module paths
+        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
+            try:
+                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_analysis_imp'])
+                if hasattr(tlm_module, 'uvm_analysis_imp'):
+                    _uvm_analysis_imp = tlm_module.uvm_analysis_imp
+                    break
+            except (ImportError, AttributeError):
+                continue
+
+if _uvm_analysis_imp is not None:
+    globals()['uvm_analysis_imp'] = _uvm_analysis_imp
+
 import cocotb
 from cocotb.triggers import Timer
 
@@ -74,7 +124,7 @@ class DMARegisterDriver(uvm_driver):
             # In real code: cocotb.dut.dma_length.value = item.length
             # In real code: cocotb.dut.dma_start.value = 1
             
-            await Timer(10, units="ns")
+            await Timer(10, unit="ns")
             await self.seq_item_port.item_done()
 
 
@@ -93,7 +143,7 @@ class DMAMonitor(uvm_monitor):
             # Monitor DMA transfer completion
             # In real code: await RisingEdge(cocotb.dut.dma_done)
             
-            await Timer(20, units="ns")
+            await Timer(20, unit="ns")
             
             # Create transaction from monitored transfer
             txn = DMATransaction()
@@ -148,16 +198,19 @@ class DMAScoreboard(uvm_scoreboard):
 class DMACoverage(uvm_subscriber):
     """Coverage model for DMA verification."""
     
-    def __init__(self, name="DMACoverage"):
-        super().__init__(name)
-        self.ap = uvm_analysis_export("ap", self)
-        self.imp = uvm_analysis_imp("imp", self)
-        self.ap.connect(self.imp)
+    def __init__(self, name="DMACoverage", parent=None):
+        super().__init__(name, parent)
         self.coverage_data = {
             'channels': set(),
             'transfer_types': set(),
             'length_ranges': {'small': 0, 'medium': 0, 'large': 0}
         }
+    
+    def build_phase(self):
+        """Build phase - create analysis ports."""
+        self.ap = uvm_analysis_export("ap", self)
+        self.imp = uvm_analysis_imp("imp", self)
+        self.ap.connect(self.imp)
     
     def write(self, txn):
         """Sample coverage."""
@@ -209,15 +262,20 @@ class DMAEnv(uvm_env):
         self.monitor.ap.connect(self.coverage.ap)
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class DMATest(uvm_test):
     """Test demonstrating DMA verification."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("DMA Verification Example Test")
         self.logger.info("=" * 60)
         self.env = DMAEnv.create("env", self)
+    
+    def connect_phase(self):
+        """Connect phase."""
+        self.logger.info("Connecting DMA Test")
     
     async def run_phase(self):
         self.raise_objection()
@@ -235,13 +293,29 @@ class DMATest(uvm_test):
         seq = DMASequence.create("seq")
         await seq.start(self.env.agent.seqr)
         
-        await Timer(100, units="ns")
+        await Timer(100, unit="ns")
         self.drop_objection()
+    
+    def check_phase(self):
+        """Check phase."""
+        self.logger.info("Checking DMA test results")
     
     def report_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("DMA test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_dma(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["DMATest"] = DMATest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("DMATest")
 
 
 if __name__ == "__main__":

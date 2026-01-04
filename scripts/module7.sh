@@ -27,7 +27,7 @@ RUN_SPI=false
 RUN_I2C=false
 RUN_VIP=false
 RUN_BEST_PRACTICES=false
-RUN_PYUVM_TESTS=false
+RUN_PYUVM_TESTS=true
 USE_VENV=true
 SIMULATOR="verilator"
 
@@ -145,10 +145,11 @@ check_prerequisites() {
     print_status $GREEN "Prerequisites check passed"
 }
 
-# Function to run Python example (syntax check)
+# Function to run Python example (run with cocotb)
 run_python_example() {
-    local example_file=$1
+    local example_dir=$1
     local example_name=$2
+    local module_name=${3:-}  # Optional module name for protocols
     
     print_header "Running: $example_name"
     
@@ -156,14 +157,44 @@ run_python_example() {
         source "$VENV_DIR/bin/activate"
     fi
     
-    # Check syntax only (don't execute, as these are structural examples)
-    if python3 -m py_compile "$example_file" 2>&1; then
-        print_status $GREEN "✓ $example_name syntax check passed"
-        print_status $YELLOW "Note: This is a structural example. Run with cocotb for full simulation."
-        return 0
-    else
-        print_status $RED "✗ $example_name syntax check failed"
+    # Check if Makefile exists
+    if [[ ! -f "$MODULE7_DIR/examples/$example_dir/Makefile" ]]; then
+        print_status $RED "✗ Makefile not found for $example_name"
         return 1
+    fi
+    
+    # Run with cocotb using make
+    cd "$MODULE7_DIR/examples/$example_dir"
+    
+    # For protocols directory, clean sim_build to avoid TOPLEVEL conflicts
+    if [[ -n "$module_name" ]] && [[ "$example_dir" == "protocols" ]]; then
+        print_status $YELLOW "Cleaning sim_build to avoid TOPLEVEL conflicts..."
+        rm -rf sim_build
+    fi
+    
+    print_status $BLUE "Running pyuvm test for $example_name..."
+    if [[ -n "$module_name" ]]; then
+        # For protocols directory, specify MODULE
+        if make SIM="$SIMULATOR" MODULE="$module_name" 2>&1 | tee "/tmp/pyuvm_${module_name}.log"; then
+            print_status $GREEN "✓ $example_name completed successfully"
+            cd "$PROJECT_ROOT"
+            return 0
+        else
+            print_status $RED "✗ $example_name failed"
+            cd "$PROJECT_ROOT"
+            return 1
+        fi
+    else
+        # Regular example
+        if make SIM="$SIMULATOR" 2>&1 | tee "/tmp/pyuvm_${example_dir}.log"; then
+            print_status $GREEN "✓ $example_name completed successfully"
+            cd "$PROJECT_ROOT"
+            return 0
+        else
+            print_status $RED "✗ $example_name failed"
+            cd "$PROJECT_ROOT"
+            return 1
+        fi
     fi
 }
 
@@ -302,56 +333,42 @@ main() {
        [[ "$RUN_SPI" == true ]] || [[ "$RUN_I2C" == true ]] || \
        [[ "$RUN_VIP" == true ]] || [[ "$RUN_BEST_PRACTICES" == true ]]; then
         
-        print_header "Real-World Application Examples"
-        print_status $YELLOW "Note: Examples are pyuvm structural examples."
-        print_status $YELLOW "They demonstrate real-world verification patterns and can be used in testbenches."
+        print_header "Running Real-World Application Examples"
         
         if [[ "$RUN_DMA" == true ]]; then
-            cd "$MODULE7_DIR/examples/dma"
-            if ! run_python_example "dma_example.py" "DMA Verification"; then
+            if ! run_python_example "dma" "DMA Verification"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_UART" == true ]]; then
-            cd "$MODULE7_DIR/examples/protocols"
-            if ! run_python_example "uart_example.py" "UART Protocol"; then
+            if ! run_python_example "protocols" "UART Protocol" "uart_example"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_SPI" == true ]]; then
-            cd "$MODULE7_DIR/examples/protocols"
-            if ! run_python_example "spi_example.py" "SPI Protocol"; then
+            if ! run_python_example "protocols" "SPI Protocol" "spi_example"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_I2C" == true ]]; then
-            cd "$MODULE7_DIR/examples/protocols"
-            if ! run_python_example "i2c_example.py" "I2C Protocol"; then
+            if ! run_python_example "protocols" "I2C Protocol" "i2c_example"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_VIP" == true ]]; then
-            cd "$MODULE7_DIR/examples/vip"
-            if ! run_python_example "vip_example.py" "VIP Development"; then
+            if ! run_python_example "vip" "VIP Development"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
         
         if [[ "$RUN_BEST_PRACTICES" == true ]]; then
-            cd "$MODULE7_DIR/examples/best_practices"
-            if ! run_python_example "best_practices_example.py" "Best Practices"; then
+            if ! run_python_example "best_practices" "Best Practices"; then
                 errors=$((errors + 1))
             fi
-            cd "$PROJECT_ROOT"
         fi
     fi
     

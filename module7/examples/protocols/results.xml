@@ -1,0 +1,8 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1767521158" />
+    <testcase name="test_i2c" classname="i2c_example" file="/mnt/d/proj/learn_uvm_pyuvm/module7/examples/protocols/i2c_example.py" lineno="203" time="0.038928985595703125" sim_time_ns="0.0" ratio_time="0.0">
+      <failure error_type="NameError" error_msg="name 'uvm_seq_item_pull_port' is not defined" />
+    </testcase>
+  </testsuite>
+</testsuites>

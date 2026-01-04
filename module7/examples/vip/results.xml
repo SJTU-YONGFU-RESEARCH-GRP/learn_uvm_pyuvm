@@ -1,0 +1,8 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1767521169" />
+    <testcase name="test_vip" classname="vip_example" file="/mnt/d/proj/learn_uvm_pyuvm/module7/examples/vip/vip_example.py" lineno="214" time="0.04091501235961914" sim_time_ns="0.0" ratio_time="0.0">
+      <failure error_type="NameError" error_msg="name 'uvm_analysis_imp' is not defined" />
+    </testcase>
+  </testsuite>
+</testsuites>

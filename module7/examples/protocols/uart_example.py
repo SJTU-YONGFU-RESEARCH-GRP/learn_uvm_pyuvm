@@ -4,6 +4,27 @@ Demonstrates UART protocol verification agent.
 """
 
 from pyuvm import *
+
+# Explicitly import TLM classes that may not be in __all__
+# Try direct imports from known TLM module paths
+try:
+    from pyuvm.s15_uvm_tlm_1 import uvm_seq_item_pull_port
+except (ImportError, AttributeError):
+    try:
+        from pyuvm.s15_uvm_tlm import uvm_seq_item_pull_port
+    except (ImportError, AttributeError):
+        try:
+            from pyuvm.s16_uvm_tlm_1 import uvm_seq_item_pull_port
+        except (ImportError, AttributeError):
+            try:
+                from pyuvm.s16_uvm_tlm import uvm_seq_item_pull_port
+            except (ImportError, AttributeError):
+                # If all imports fail, try to get from globals (might be available from pyuvm import *)
+                try:
+                    uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
+                except KeyError:
+                    pass
+
 import cocotb
 from cocotb.triggers import Timer, RisingEdge
 
@@ -46,7 +67,7 @@ class UARTDriver(uvm_driver):
             # In real code: cocotb.dut.tx.value = 1  # Stop bit
             # In real code: await Timer(bit_time, units="ns")
             
-            await Timer(100, units="ns")  # Simulated transmission time
+            await Timer(100, unit="ns")  # Simulated transmission time
             await self.seq_item_port.item_done()
 
 
@@ -70,7 +91,7 @@ class UARTMonitor(uvm_monitor):
             # In real code:     await Timer(bit_time, units="ns")
             # In real code:     data |= (cocotb.dut.rx.value << i)
             
-            await Timer(100, units="ns")
+            await Timer(100, unit="ns")
             
             # Create transaction from received data
             txn = UARTTransaction()
@@ -124,15 +145,20 @@ class UARTEnv(uvm_env):
         self.logger.info("Connecting UARTEnv")
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class UARTTest(uvm_test):
     """Test demonstrating UART protocol verification."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("UART Protocol Example Test")
         self.logger.info("=" * 60)
         self.env = UARTEnv.create("env", self)
+    
+    def connect_phase(self):
+        """Connect phase."""
+        self.logger.info("Connecting UART Test")
     
     async def run_phase(self):
         self.raise_objection()
@@ -142,13 +168,29 @@ class UARTTest(uvm_test):
         seq = UARTSequence.create("seq")
         await seq.start(self.env.agent.seqr)
         
-        await Timer(1000, units="ns")
+        await Timer(1000, unit="ns")
         self.drop_objection()
+    
+    def check_phase(self):
+        """Check phase."""
+        self.logger.info("Checking UART test results")
     
     def report_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("UART test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_uart(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["UARTTest"] = UARTTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("UARTTest")
 
 
 if __name__ == "__main__":

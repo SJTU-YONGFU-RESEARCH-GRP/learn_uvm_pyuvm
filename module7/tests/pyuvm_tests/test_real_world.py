@@ -8,6 +8,30 @@ from cocotb.clock import Clock
 from cocotb.triggers import Timer, RisingEdge
 from pyuvm import *
 
+# Explicitly import TLM classes that may not be in __all__
+# Try direct imports from known TLM module paths
+try:
+    from pyuvm.s15_uvm_tlm_1 import uvm_seq_item_pull_port, uvm_analysis_imp
+except (ImportError, AttributeError):
+    try:
+        from pyuvm.s15_uvm_tlm import uvm_seq_item_pull_port, uvm_analysis_imp
+    except (ImportError, AttributeError):
+        try:
+            from pyuvm.s16_uvm_tlm_1 import uvm_seq_item_pull_port, uvm_analysis_imp
+        except (ImportError, AttributeError):
+            try:
+                from pyuvm.s16_uvm_tlm import uvm_seq_item_pull_port, uvm_analysis_imp
+            except (ImportError, AttributeError):
+                # If all imports fail, try to get from globals (might be available from pyuvm import *)
+                try:
+                    uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
+                except KeyError:
+                    pass
+                try:
+                    uvm_analysis_imp = globals()['uvm_analysis_imp']
+                except KeyError:
+                    pass
+
 
 class RealWorldTransaction(uvm_sequence_item):
     """Transaction for real-world test."""
@@ -44,7 +68,7 @@ class RealWorldDriver(uvm_driver):
         while True:
             item = await self.seq_item_port.get_next_item()
             self.logger.info(f"Driving: {item}")
-            await Timer(10, units="ns")
+            await Timer(10, unit="ns")
             await self.seq_item_port.item_done()
 
 
@@ -56,7 +80,7 @@ class RealWorldMonitor(uvm_monitor):
     
     async def run_phase(self):
         while True:
-            await Timer(10, units="ns")
+            await Timer(10, unit="ns")
             txn = RealWorldTransaction()
             txn.data = 0xAA
             txn.address = 0x1000
@@ -107,15 +131,20 @@ class RealWorldEnv(uvm_env):
         self.agent.monitor.ap.connect(self.scoreboard.ap)
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class RealWorldTest(uvm_test):
     """Test class for real-world application."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("Building RealWorldTest")
         self.logger.info("=" * 60)
         self.env = RealWorldEnv.create("env", self)
+    
+    def connect_phase(self):
+        """Connect phase."""
+        self.logger.info("Connecting RealWorldTest")
     
     async def run_phase(self):
         self.raise_objection()
@@ -125,7 +154,7 @@ class RealWorldTest(uvm_test):
         seq = RealWorldSequence.create("seq")
         await seq.start(self.env.agent.seqr)
         
-        await Timer(200, units="ns")
+        await Timer(200, unit="ns")
         self.drop_objection()
     
     def check_phase(self):
@@ -135,6 +164,18 @@ class RealWorldTest(uvm_test):
         self.logger.info("=" * 60)
         self.logger.info("RealWorldTest completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_real_world(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["RealWorldTest"] = RealWorldTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("RealWorldTest")
 
 
 if __name__ == "__main__":

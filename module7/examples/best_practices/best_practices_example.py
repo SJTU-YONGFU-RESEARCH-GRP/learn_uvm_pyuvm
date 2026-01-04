@@ -4,6 +4,8 @@ Demonstrates code organization, documentation, and best practices.
 """
 
 from pyuvm import *
+import cocotb
+from cocotb.triggers import Timer
 
 
 class BestPracticesTransaction(uvm_sequence_item):
@@ -72,7 +74,7 @@ class BestPracticesComponent(uvm_component):
         - Handle exceptions
         """
         self.logger.info(f"[{self.get_name()}] Running component (best practices)")
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
     
     def check_phase(self):
         """
@@ -133,7 +135,7 @@ class ReusableComponent(uvm_component):
         """Run phase - component operation."""
         if self.enabled:
             self.logger.info(f"[{self.get_name()}] Running in {self.mode} mode")
-            await Timer(10, units="ns")
+            await Timer(10, unit="ns")
 
 
 class WellOrganizedEnv(uvm_env):
@@ -165,11 +167,11 @@ class WellOrganizedEnv(uvm_env):
         self.agent = BestPracticesComponent.create("agent", self)
         
         # Group 2: Analysis components
-        self.reusable_comp = ReusableComponent.create(
-            "reusable_comp", 
-            self, 
-            config={'enabled': True, 'mode': 'normal'}
-        )
+        self.reusable_comp = ReusableComponent.create("reusable_comp", self)
+        # Set configuration after creation
+        self.reusable_comp.config = {'enabled': True, 'mode': 'normal'}
+        self.reusable_comp.enabled = self.reusable_comp.config.get('enabled', True)
+        self.reusable_comp.mode = self.reusable_comp.config.get('mode', 'normal')
     
     def connect_phase(self):
         """
@@ -184,7 +186,8 @@ class WellOrganizedEnv(uvm_env):
         # Connections here
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class BestPracticesTest(uvm_test):
     """
     Test demonstrating best practices.
@@ -196,7 +199,7 @@ class BestPracticesTest(uvm_test):
     - Clear reporting
     """
     
-    async def build_phase(self):
+    def build_phase(self):
         """
         Build phase - demonstrate best practices.
         
@@ -210,6 +213,10 @@ class BestPracticesTest(uvm_test):
         self.logger.info("=" * 60)
         self.env = WellOrganizedEnv.create("env", self)
     
+    def connect_phase(self):
+        """Connect phase."""
+        self.logger.info("Connecting Best Practices Test")
+    
     async def run_phase(self):
         """
         Run phase - demonstrate best practices.
@@ -221,8 +228,12 @@ class BestPracticesTest(uvm_test):
         """
         self.raise_objection()
         self.logger.info("Running best practices test")
-        await Timer(50, units="ns")
+        await Timer(50, unit="ns")
         self.drop_objection()
+    
+    def check_phase(self):
+        """Check phase."""
+        self.logger.info("Checking best practices test results")
     
     def report_phase(self):
         """
@@ -236,6 +247,18 @@ class BestPracticesTest(uvm_test):
         self.logger.info("=" * 60)
         self.logger.info("Best practices test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_best_practices(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["BestPracticesTest"] = BestPracticesTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("BestPracticesTest")
 
 
 if __name__ == "__main__":

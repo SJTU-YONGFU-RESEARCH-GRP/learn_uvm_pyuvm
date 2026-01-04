@@ -4,6 +4,27 @@ Demonstrates I2C protocol verification with multi-master support.
 """
 
 from pyuvm import *
+
+# Explicitly import TLM classes that may not be in __all__
+# Try direct imports from known TLM module paths
+try:
+    from pyuvm.s15_uvm_tlm_1 import uvm_seq_item_pull_port
+except (ImportError, AttributeError):
+    try:
+        from pyuvm.s15_uvm_tlm import uvm_seq_item_pull_port
+    except (ImportError, AttributeError):
+        try:
+            from pyuvm.s16_uvm_tlm_1 import uvm_seq_item_pull_port
+        except (ImportError, AttributeError):
+            try:
+                from pyuvm.s16_uvm_tlm import uvm_seq_item_pull_port
+            except (ImportError, AttributeError):
+                # If all imports fail, try to get from globals (might be available from pyuvm import *)
+                try:
+                    uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
+                except KeyError:
+                    pass
+
 import cocotb
 from cocotb.triggers import Timer, RisingEdge
 
@@ -59,7 +80,7 @@ class I2CDriver(uvm_driver):
             # In real code:         cocotb.dut.scl.value = 0
             # In real code: cocotb.dut.sda.value = 1  # STOP condition
             
-            await Timer(200, units="ns")
+            await Timer(200, unit="ns")
             await self.seq_item_port.item_done()
 
 
@@ -83,7 +104,7 @@ class I2CMonitor(uvm_monitor):
             # In real code:     address |= (cocotb.dut.sda.value << (6-i))
             # In real code:     await FallingEdge(cocotb.dut.scl)
             
-            await Timer(200, units="ns")
+            await Timer(200, unit="ns")
             
             txn = I2CTransaction()
             txn.address = 0x50  # Simulated
@@ -142,15 +163,20 @@ class I2CEnv(uvm_env):
         self.logger.info("Connecting I2CEnv")
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class I2CTest(uvm_test):
     """Test demonstrating I2C protocol verification."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("I2C Protocol Example Test")
         self.logger.info("=" * 60)
         self.env = I2CEnv.create("env", self)
+    
+    def connect_phase(self):
+        """Connect phase."""
+        self.logger.info("Connecting I2C Test")
     
     async def run_phase(self):
         self.raise_objection()
@@ -160,13 +186,29 @@ class I2CTest(uvm_test):
         seq = I2CSequence.create("seq")
         await seq.start(self.env.master1_agent.seqr)
         
-        await Timer(1000, units="ns")
+        await Timer(1000, unit="ns")
         self.drop_objection()
+    
+    def check_phase(self):
+        """Check phase."""
+        self.logger.info("Checking I2C test results")
     
     def report_phase(self):
         self.logger.info("=" * 60)
         self.logger.info("I2C test completed")
         self.logger.info("=" * 60)
+
+
+# Cocotb test function to run the pyuvm test
+@cocotb.test()
+async def test_i2c(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["I2CTest"] = I2CTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("I2CTest")
 
 
 if __name__ == "__main__":

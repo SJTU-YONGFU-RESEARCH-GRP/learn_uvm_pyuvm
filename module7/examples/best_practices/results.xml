@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1767521181" />
+    <testcase name="test_best_practices" classname="best_practices_example" file="/mnt/d/proj/learn_uvm_pyuvm/module7/examples/best_practices/best_practices_example.py" lineno="253" time="0.0016429424285888672" sim_time_ns="50.0" ratio_time="30433.202728196196" />
+  </testsuite>
+</testsuites>
