@@ -14,6 +14,8 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
   public:
 
     // DESIGN SPECIFIC STATE
+    CData/*0:0*/ axi4_lite_slave__DOT__ACLK;
+    CData/*0:0*/ axi4_lite_slave__DOT__ARESETn;
     VL_IN8(ACLK,0,0);
     VL_IN8(ARESETn,0,0);
     VL_IN8(AWVALID,0,0);
@@ -31,8 +33,6 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
     VL_OUT8(RVALID,0,0);
     VL_IN8(RREADY,0,0);
     VL_OUT8(RRESP,1,0);
-    CData/*0:0*/ axi4_lite_slave__DOT__ACLK;
-    CData/*0:0*/ axi4_lite_slave__DOT__ARESETn;
     CData/*0:0*/ axi4_lite_slave__DOT__AWVALID;
     CData/*0:0*/ axi4_lite_slave__DOT__AWREADY;
     CData/*2:0*/ axi4_lite_slave__DOT__AWPROT;
@@ -52,8 +52,8 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
     CData/*0:0*/ axi4_lite_slave__DOT__read_state;
     CData/*0:0*/ __VstlFirstIteration;
     CData/*0:0*/ __VicoFirstIteration;
-    CData/*0:0*/ __Vtrigprevexpr___TOP__ACLK__0;
-    CData/*0:0*/ __Vtrigprevexpr___TOP__ARESETn__0;
+    CData/*0:0*/ __Vtrigprevexpr___TOP__axi4_lite_slave__DOT__ACLK__0;
+    CData/*0:0*/ __Vtrigprevexpr___TOP__axi4_lite_slave__DOT__ARESETn__0;
     CData/*0:0*/ __VactContinue;
     VL_IN(AWADDR,31,0);
     VL_IN(WDATA,31,0);

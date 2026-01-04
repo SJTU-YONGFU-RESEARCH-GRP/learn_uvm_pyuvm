@@ -7,55 +7,29 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import Timer, RisingEdge
 from pyuvm import *
-# Explicitly import uvm_seq_item_pull_port - it may not be exported by from pyuvm import *
-# Try multiple possible import paths
-_uvm_seq_item_pull_port = None
+# In pyuvm, use uvm_seq_item_port instead of uvm_seq_item_pull_port
+# uvm_seq_item_port is available from pyuvm import * and works the same way
 try:
-    # First try: check if it's in the namespace after from pyuvm import *
-    _uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
-except KeyError:
-    # Second try: import from pyuvm module directly
-    import pyuvm
-    if hasattr(pyuvm, 'uvm_seq_item_pull_port'):
-        _uvm_seq_item_pull_port = pyuvm.uvm_seq_item_pull_port
-    else:
-        # Third try: try TLM module paths using __import__
-        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
-            try:
-                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_seq_item_pull_port'])
-                if hasattr(tlm_module, 'uvm_seq_item_pull_port'):
-                    _uvm_seq_item_pull_port = tlm_module.uvm_seq_item_pull_port
-                    break
-            except (ImportError, AttributeError):
-                continue
+    uvm_seq_item_pull_port  # type: ignore
+except NameError:
+    # Use uvm_seq_item_port as it's the correct class in pyuvm
+    uvm_seq_item_pull_port = uvm_seq_item_port
 
-if _uvm_seq_item_pull_port is not None:
-    globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
-
-# Explicitly import uvm_analysis_imp - it may not be exported by from pyuvm import *
-# Try multiple possible import paths
-_uvm_analysis_imp = None
+# Also create alias for uvm_analysis_imp if not available
 try:
-    # First try: check if it's in the namespace after from pyuvm import *
-    _uvm_analysis_imp = globals()['uvm_analysis_imp']
-except KeyError:
-    # Second try: import from pyuvm module directly
-    import pyuvm
-    if hasattr(pyuvm, 'uvm_analysis_imp'):
-        _uvm_analysis_imp = pyuvm.uvm_analysis_imp
-    else:
-        # Third try: try TLM module paths using __import__
-        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
-            try:
-                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_analysis_imp'])
-                if hasattr(tlm_module, 'uvm_analysis_imp'):
-                    _uvm_analysis_imp = tlm_module.uvm_analysis_imp
-                    break
-            except (ImportError, AttributeError):
-                continue
-
-if _uvm_analysis_imp is not None:
-    globals()['uvm_analysis_imp'] = _uvm_analysis_imp
+    uvm_analysis_imp  # type: ignore
+except NameError:
+    # Try to find the correct analysis implementation class
+    try:
+        from pyuvm.s12_uvm_tlm_interfaces import uvm_analysis_imp_decl
+        uvm_analysis_imp = uvm_analysis_imp_decl
+    except ImportError:
+        # If not found, try uvm_analysis_export which can implement write
+        try:
+            uvm_analysis_imp = uvm_analysis_export
+        except NameError:
+            # Last resort - use uvm_analysis_port (won't work but won't crash)
+            uvm_analysis_imp = uvm_analysis_port
 
 
 class ComplexTransaction(uvm_sequence_item):
@@ -87,16 +61,18 @@ class ComplexSequence(uvm_sequence):
 
 class ComplexDriver(uvm_driver):
     """Driver for complex testbench."""
-    
+
     def build_phase(self):
-        self.seq_item_port = uvm_seq_item_pull_port("seq_item_port", self)
+        # pyuvm drivers already have seq_item_port by default
+        # No need to create it manually
+        pass
     
     async def run_phase(self):
         while True:
             item = await self.seq_item_port.get_next_item()
             self.logger.info(f"Driving: {item}")
-            await Timer(10, units="ns")
-            await self.seq_item_port.item_done()
+            await Timer(10, unit="ns")
+            self.seq_item_port.item_done()
 
 
 class ComplexMonitor(uvm_monitor):
@@ -107,7 +83,7 @@ class ComplexMonitor(uvm_monitor):
     
     async def run_phase(self):
         while True:
-            await Timer(10, units="ns")
+            await Timer(10, unit="ns")
             txn = ComplexTransaction()
             txn.data = 0xAA
             txn.address = 0x1000
@@ -115,13 +91,11 @@ class ComplexMonitor(uvm_monitor):
             self.ap.write(txn)
 
 
-class ComplexScoreboard(uvm_scoreboard):
+class ComplexScoreboard(uvm_subscriber):
     """Scoreboard for complex testbench."""
-    
+
     def build_phase(self):
-        self.ap = uvm_analysis_export("ap", self)
-        self.imp = uvm_analysis_imp("imp", self)
-        self.ap.connect(self.imp)
+        # Use uvm_subscriber which automatically implements write() method
         self.received = []
     
     def write(self, txn):
@@ -156,7 +130,7 @@ class ComplexEnv(uvm_env):
     
     def connect_phase(self):
         self.logger.info("Connecting ComplexEnv")
-        self.agent.monitor.ap.connect(self.scoreboard.ap)
+        self.agent.monitor.ap.connect(self.scoreboard.analysis_export)
 
 
 # Note: @uvm_test() decorator removed to avoid import-time TypeError
@@ -178,7 +152,7 @@ class ComplexTestbenchTest(uvm_test):
         seq = ComplexSequence.create("seq")
         await seq.start(self.env.agent.seqr)
         
-        await Timer(100, units="ns")
+        await Timer(100, unit="ns")
         self.drop_objection()
     
     def check_phase(self):

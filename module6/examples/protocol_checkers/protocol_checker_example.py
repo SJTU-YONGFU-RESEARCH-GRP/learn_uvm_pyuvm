@@ -29,30 +29,20 @@ except KeyError:
 if _uvm_seq_item_pull_port is not None:
     globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
 
-# Explicitly import uvm_analysis_imp - it may not be exported by from pyuvm import *
-# Try multiple possible import paths
-_uvm_analysis_imp = None
+# Also create alias for uvm_analysis_imp if not available
 try:
-    # First try: check if it's in the namespace after from pyuvm import *
-    _uvm_analysis_imp = globals()['uvm_analysis_imp']
-except KeyError:
-    # Second try: import from pyuvm module directly
-    import pyuvm
-    if hasattr(pyuvm, 'uvm_analysis_imp'):
-        _uvm_analysis_imp = pyuvm.uvm_analysis_imp
-    else:
-        # Third try: try TLM module paths using __import__
-        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
-            try:
-                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_analysis_imp'])
-                if hasattr(tlm_module, 'uvm_analysis_imp'):
-                    _uvm_analysis_imp = tlm_module.uvm_analysis_imp
-                    break
-            except (ImportError, AttributeError):
-                continue
-
-if _uvm_analysis_imp is not None:
-    globals()['uvm_analysis_imp'] = _uvm_analysis_imp
+    uvm_analysis_imp  # type: ignore
+except NameError:
+    try:
+        from pyuvm.s12_uvm_tlm_interfaces import uvm_analysis_imp_decl
+        uvm_analysis_imp = uvm_analysis_imp_decl
+    except ImportError:
+        # If not found, try uvm_analysis_export which can implement write
+        try:
+            uvm_analysis_imp = uvm_analysis_export
+        except NameError:
+            # Last resort - use uvm_analysis_port (won't work but won't crash)
+            uvm_analysis_imp = uvm_analysis_port
 import cocotb
 from cocotb.triggers import Timer
 
@@ -71,21 +61,19 @@ class ProtocolTransaction(uvm_sequence_item):
         return f"valid={self.valid}, ready={self.ready}, data=0x{self.data:02X}"
 
 
-class ProtocolChecker(uvm_component):
+class ProtocolChecker(uvm_subscriber):
     """
     Protocol checker for compliance verification.
-    
+
     Shows:
     - Protocol rule checking
     - Error detection
     - Protocol compliance monitoring
     """
-    
+
     def __init__(self, name="ProtocolChecker", parent=None):
         super().__init__(name, parent)
-        self.ap = uvm_analysis_export("ap", self)
-        self.imp = uvm_analysis_imp("imp", self)
-        self.ap.connect(self.imp)
+        # uvm_subscriber automatically provides analysis_export
         
         # Protocol state
         self.prev_valid = False
@@ -188,7 +176,7 @@ class ProtocolEnv(uvm_env):
     
     def connect_phase(self):
         self.logger.info("Connecting ProtocolEnv")
-        self.monitor.ap.connect(self.checker.ap)
+        self.monitor.ap.connect(self.checker.analysis_export)
 
 
 # Note: @uvm_test() decorator removed to avoid import-time TypeError

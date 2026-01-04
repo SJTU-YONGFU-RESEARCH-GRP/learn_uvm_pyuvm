@@ -29,30 +29,20 @@ except KeyError:
 if _uvm_seq_item_pull_port is not None:
     globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
 
-# Explicitly import uvm_analysis_imp - it may not be exported by from pyuvm import *
-# Try multiple possible import paths
-_uvm_analysis_imp = None
+# Also create alias for uvm_analysis_imp if not available
 try:
-    # First try: check if it's in the namespace after from pyuvm import *
-    _uvm_analysis_imp = globals()['uvm_analysis_imp']
-except KeyError:
-    # Second try: import from pyuvm module directly
-    import pyuvm
-    if hasattr(pyuvm, 'uvm_analysis_imp'):
-        _uvm_analysis_imp = pyuvm.uvm_analysis_imp
-    else:
-        # Third try: try TLM module paths using __import__
-        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
-            try:
-                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_analysis_imp'])
-                if hasattr(tlm_module, 'uvm_analysis_imp'):
-                    _uvm_analysis_imp = tlm_module.uvm_analysis_imp
-                    break
-            except (ImportError, AttributeError):
-                continue
-
-if _uvm_analysis_imp is not None:
-    globals()['uvm_analysis_imp'] = _uvm_analysis_imp
+    uvm_analysis_imp  # type: ignore
+except NameError:
+    try:
+        from pyuvm.s12_uvm_tlm_interfaces import uvm_analysis_imp_decl
+        uvm_analysis_imp = uvm_analysis_imp_decl
+    except ImportError:
+        # If not found, try uvm_analysis_export which can implement write
+        try:
+            uvm_analysis_imp = uvm_analysis_export
+        except NameError:
+            # Last resort - use uvm_analysis_port (won't work but won't crash)
+            uvm_analysis_imp = uvm_analysis_port
 import cocotb
 from cocotb.triggers import Timer
 
@@ -89,19 +79,30 @@ class Layer0Component(uvm_component):
             await Timer(10, unit="ns")
 
 
+class Layer1Subscriber(uvm_subscriber):
+    """Subscriber for Layer 1 input."""
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.parent = parent
+
+    def write(self, txn):
+        """Receive transactions for Layer 1."""
+        if hasattr(self.parent, 'receive_layer1'):
+            self.parent.receive_layer1(txn)
+
+
 class Layer1Component(uvm_component):
     """Layer 1: Middle abstraction level."""
-    
+
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building Layer 1 component")
-        self.ap_in = uvm_analysis_export("ap_in", self)
-        self.imp_in = uvm_analysis_imp("imp_in", self)
-        self.ap_in.connect(self.imp_in)
+        self.subscriber = Layer1Subscriber("subscriber", self)
         self.ap_out = uvm_analysis_port("ap_out", self)
         self.processed = []
     
-    def write(self, txn):
-        """Write method - process transaction from lower layer."""
+    def receive_layer1(self, txn):
+        """Receive transaction from Layer 0."""
         self.logger.info(f"[{self.get_name()}] Layer 1 received: {txn}")
         
         # Process transaction (e.g., add layer 1 processing)
@@ -119,18 +120,29 @@ class Layer1Component(uvm_component):
         await Timer(50, unit="ns")
 
 
+class Layer2Subscriber(uvm_subscriber):
+    """Subscriber for Layer 2 input."""
+
+    def __init__(self, name, parent):
+        super().__init__(name, parent)
+        self.parent = parent
+
+    def write(self, txn):
+        """Receive transactions for Layer 2."""
+        if hasattr(self.parent, 'receive_layer2'):
+            self.parent.receive_layer2(txn)
+
+
 class Layer2Component(uvm_component):
     """Layer 2: Highest abstraction level."""
-    
+
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building Layer 2 component")
-        self.ap_in = uvm_analysis_export("ap_in", self)
-        self.imp_in = uvm_analysis_imp("imp_in", self)
-        self.ap_in.connect(self.imp_in)
+        self.subscriber = Layer2Subscriber("subscriber", self)
         self.received = []
     
-    def write(self, txn):
-        """Write method - receive from middle layer."""
+    def receive_layer2(self, txn):
+        """Receive transaction from Layer 1."""
         self.logger.info(f"[{self.get_name()}] Layer 2 received: {txn}")
         self.received.append(txn)
     
@@ -163,8 +175,8 @@ class LayeredEnv(uvm_env):
         """Connect phase - connect layers."""
         self.logger.info("Connecting Layered Environment")
         # Connect Layer 0 -> Layer 1 -> Layer 2
-        self.layer0.ap.connect(self.layer1.ap_in)
-        self.layer1.ap_out.connect(self.layer2.ap_in)
+        self.layer0.ap.connect(self.layer1.subscriber.analysis_export)
+        self.layer1.ap_out.connect(self.layer2.subscriber.analysis_export)
         self.logger.info("Layer connections: Layer0 -> Layer1 -> Layer2")
 
 

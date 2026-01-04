@@ -29,30 +29,20 @@ except KeyError:
 if _uvm_seq_item_pull_port is not None:
     globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
 
-# Explicitly import uvm_analysis_imp - it may not be exported by from pyuvm import *
-# Try multiple possible import paths
-_uvm_analysis_imp = None
+# Also create alias for uvm_analysis_imp if not available
 try:
-    # First try: check if it's in the namespace after from pyuvm import *
-    _uvm_analysis_imp = globals()['uvm_analysis_imp']
-except KeyError:
-    # Second try: import from pyuvm module directly
-    import pyuvm
-    if hasattr(pyuvm, 'uvm_analysis_imp'):
-        _uvm_analysis_imp = pyuvm.uvm_analysis_imp
-    else:
-        # Third try: try TLM module paths using __import__
-        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
-            try:
-                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_analysis_imp'])
-                if hasattr(tlm_module, 'uvm_analysis_imp'):
-                    _uvm_analysis_imp = tlm_module.uvm_analysis_imp
-                    break
-            except (ImportError, AttributeError):
-                continue
-
-if _uvm_analysis_imp is not None:
-    globals()['uvm_analysis_imp'] = _uvm_analysis_imp
+    uvm_analysis_imp  # type: ignore
+except NameError:
+    try:
+        from pyuvm.s12_uvm_tlm_interfaces import uvm_analysis_imp_decl
+        uvm_analysis_imp = uvm_analysis_imp_decl
+    except ImportError:
+        # If not found, try uvm_analysis_export which can implement write
+        try:
+            uvm_analysis_imp = uvm_analysis_export
+        except NameError:
+            # Last resort - use uvm_analysis_port (won't work but won't crash)
+            uvm_analysis_imp = uvm_analysis_port
 import cocotb
 from cocotb.triggers import Timer
 
@@ -73,17 +63,32 @@ class ChannelTransaction(uvm_sequence_item):
                 f"expected=0x{self.expected:02X}, actual=0x{self.actual:02X}")
 
 
+class ChannelSubscriber(uvm_subscriber):
+    """Subscriber for individual channel."""
+
+    def __init__(self, name, parent, channel_id):
+        super().__init__(name, parent)
+        self.channel_id = channel_id
+
+    def write(self, txn):
+        """Receive transactions for this channel."""
+        self.logger.info(f"[{self.get_name()}] Received from channel {self.channel_id}: {txn}")
+        # Forward to parent scoreboard
+        if hasattr(self.parent, 'receive_transaction'):
+            self.parent.receive_transaction(txn, self.channel_id)
+
+
 class MultiChannelScoreboard(uvm_scoreboard):
     """
     Multi-channel scoreboard.
-    
+
     Shows:
     - Multiple channel checking
     - Channel coordination
     - Time-based matching
     - Scoreboard patterns
     """
-    
+
     def __init__(self, name="MultiChannelScoreboard", parent=None):
         super().__init__(name, parent)
         self.num_channels = 3  # Default, can be set after creation
@@ -91,36 +96,29 @@ class MultiChannelScoreboard(uvm_scoreboard):
         self.actual = {}
         self.mismatches = {}
         self.matched = {}
-    
+        self.subscribers = []
+
     def build_phase(self):
-        """Build phase - create analysis ports for each channel."""
+        """Build phase - create subscribers for each channel."""
         # Initialize dictionaries if not already done
         if not self.expected:
             self.expected = {i: [] for i in range(self.num_channels)}
             self.actual = {i: [] for i in range(self.num_channels)}
             self.mismatches = {i: [] for i in range(self.num_channels)}
             self.matched = {i: [] for i in range(self.num_channels)}
-        
+
         self.logger.info(f"[{self.get_name()}] Building multi-channel scoreboard ({self.num_channels} channels)")
-        
-        self.analysis_exports = []
-        self.analysis_imps = []
-        
+
+        # Create subscriber for each channel
         for i in range(self.num_channels):
-            ap = uvm_analysis_export(f"ap_channel_{i}", self)
-            imp = uvm_analysis_imp(f"imp_channel_{i}", self)
-            ap.connect(imp)
-            self.analysis_exports.append(ap)
-            self.analysis_imps.append(imp)
+            subscriber = ChannelSubscriber(f"subscriber_channel_{i}", self, i)
+            self.subscribers.append(subscriber)
     
-    def write(self, txn, channel_id=None):
-        """Write method - receive transactions from channels."""
-        if channel_id is None:
-            channel_id = txn.channel if hasattr(txn, 'channel') else 0
-        
+    def receive_transaction(self, txn, channel_id):
+        """Receive transaction from channel subscriber."""
         self.logger.info(f"[{self.get_name()}] Received from channel {channel_id}: {txn}")
         self.actual[channel_id].append(txn)
-        
+
         # Match with expected
         if len(self.expected[channel_id]) > 0:
             exp_txn = self.expected[channel_id].pop(0)
@@ -221,10 +219,9 @@ class MultiChannelEnv(uvm_env):
         """Connect phase - connect monitors to scoreboard."""
         self.logger.info("Connecting MultiChannelEnv")
         
-        # Connect each monitor to corresponding scoreboard channel
+        # Connect each monitor to corresponding scoreboard subscriber
         for i, monitor in enumerate(self.monitors):
-            # In real implementation:
-            # monitor.ap.connect(self.scoreboard.analysis_exports[i])
+            monitor.ap.connect(self.scoreboard.subscribers[i].analysis_export)
             self.logger.info(f"Connected channel {i} monitor to scoreboard")
 
 

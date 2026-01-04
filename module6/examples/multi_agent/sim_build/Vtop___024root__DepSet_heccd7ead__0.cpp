@@ -25,22 +25,22 @@ VL_INLINE_OPT void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) 
     vlSelfRef.axi4_lite_slave__DOT__ACLK = vlSelfRef.ACLK;
     vlSelfRef.axi4_lite_slave__DOT__ARESETn = vlSelfRef.ARESETn;
     vlSelfRef.axi4_lite_slave__DOT__AWVALID = vlSelfRef.AWVALID;
+    vlSelfRef.AWREADY = vlSelfRef.axi4_lite_slave__DOT__AWREADY;
     vlSelfRef.axi4_lite_slave__DOT__AWADDR = vlSelfRef.AWADDR;
     vlSelfRef.axi4_lite_slave__DOT__AWPROT = vlSelfRef.AWPROT;
     vlSelfRef.axi4_lite_slave__DOT__WVALID = vlSelfRef.WVALID;
+    vlSelfRef.WREADY = vlSelfRef.axi4_lite_slave__DOT__WREADY;
     vlSelfRef.axi4_lite_slave__DOT__WDATA = vlSelfRef.WDATA;
     vlSelfRef.axi4_lite_slave__DOT__WSTRB = vlSelfRef.WSTRB;
+    vlSelfRef.BVALID = vlSelfRef.axi4_lite_slave__DOT__BVALID;
     vlSelfRef.axi4_lite_slave__DOT__BREADY = vlSelfRef.BREADY;
+    vlSelfRef.BRESP = vlSelfRef.axi4_lite_slave__DOT__BRESP;
     vlSelfRef.axi4_lite_slave__DOT__ARVALID = vlSelfRef.ARVALID;
+    vlSelfRef.ARREADY = vlSelfRef.axi4_lite_slave__DOT__ARREADY;
     vlSelfRef.axi4_lite_slave__DOT__ARADDR = vlSelfRef.ARADDR;
     vlSelfRef.axi4_lite_slave__DOT__ARPROT = vlSelfRef.ARPROT;
-    vlSelfRef.axi4_lite_slave__DOT__RREADY = vlSelfRef.RREADY;
-    vlSelfRef.AWREADY = vlSelfRef.axi4_lite_slave__DOT__AWREADY;
-    vlSelfRef.WREADY = vlSelfRef.axi4_lite_slave__DOT__WREADY;
-    vlSelfRef.BVALID = vlSelfRef.axi4_lite_slave__DOT__BVALID;
-    vlSelfRef.BRESP = vlSelfRef.axi4_lite_slave__DOT__BRESP;
-    vlSelfRef.ARREADY = vlSelfRef.axi4_lite_slave__DOT__ARREADY;
     vlSelfRef.RVALID = vlSelfRef.axi4_lite_slave__DOT__RVALID;
+    vlSelfRef.axi4_lite_slave__DOT__RREADY = vlSelfRef.RREADY;
     vlSelfRef.RDATA = vlSelfRef.axi4_lite_slave__DOT__RDATA;
     vlSelfRef.RRESP = vlSelfRef.axi4_lite_slave__DOT__RRESP;
 }
@@ -108,14 +108,16 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     __Vdly__axi4_lite_slave__DOT__BVALID = vlSelfRef.axi4_lite_slave__DOT__BVALID;
     __Vdly__axi4_lite_slave__DOT__read_state = vlSelfRef.axi4_lite_slave__DOT__read_state;
     __Vdly__axi4_lite_slave__DOT__write_state = vlSelfRef.axi4_lite_slave__DOT__write_state;
-    if (vlSelfRef.ARESETn) {
-        if (((IData)(vlSelfRef.ARVALID) & (~ (IData)(vlSelfRef.axi4_lite_slave__DOT__ARREADY)))) {
+    if (vlSelfRef.axi4_lite_slave__DOT__ARESETn) {
+        if (((IData)(vlSelfRef.axi4_lite_slave__DOT__ARVALID) 
+             & (~ (IData)(vlSelfRef.axi4_lite_slave__DOT__ARREADY)))) {
             vlSelfRef.axi4_lite_slave__DOT__ARREADY = 1U;
             __Vdly__axi4_lite_slave__DOT__read_state = 1U;
         } else {
             vlSelfRef.axi4_lite_slave__DOT__ARREADY = 0U;
         }
-        if (((IData)(vlSelfRef.AWVALID) & (~ (IData)(vlSelfRef.axi4_lite_slave__DOT__AWREADY)))) {
+        if (((IData)(vlSelfRef.axi4_lite_slave__DOT__AWVALID) 
+             & (~ (IData)(vlSelfRef.axi4_lite_slave__DOT__AWREADY)))) {
             vlSelfRef.axi4_lite_slave__DOT__AWREADY = 1U;
             __Vdly__axi4_lite_slave__DOT__write_state = 1U;
         } else {
@@ -126,28 +128,33 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
             __Vdly__axi4_lite_slave__DOT__RVALID = 1U;
             vlSelfRef.axi4_lite_slave__DOT__RDATA = 
                 vlSelfRef.axi4_lite_slave__DOT__memory
-                [(0x3ffU & (vlSelfRef.ARADDR >> 2U))];
+                [(0x3ffU & (vlSelfRef.axi4_lite_slave__DOT__ARADDR 
+                            >> 2U))];
             vlSelfRef.axi4_lite_slave__DOT__RRESP = 0U;
-        } else if (((IData)(vlSelfRef.RREADY) & (IData)(vlSelfRef.axi4_lite_slave__DOT__RVALID))) {
+        } else if (((IData)(vlSelfRef.axi4_lite_slave__DOT__RREADY) 
+                    & (IData)(vlSelfRef.axi4_lite_slave__DOT__RVALID))) {
             __Vdly__axi4_lite_slave__DOT__RVALID = 0U;
             __Vdly__axi4_lite_slave__DOT__read_state = 0U;
         }
         if ((((IData)(vlSelfRef.axi4_lite_slave__DOT__write_state) 
-              & (IData)(vlSelfRef.WVALID)) & (~ (IData)(vlSelfRef.axi4_lite_slave__DOT__WREADY)))) {
+              & (IData)(vlSelfRef.axi4_lite_slave__DOT__WVALID)) 
+             & (~ (IData)(vlSelfRef.axi4_lite_slave__DOT__WREADY)))) {
             __Vdly__axi4_lite_slave__DOT__WREADY = 1U;
             __VdlyVal__axi4_lite_slave__DOT__memory__v0 
-                = vlSelfRef.WDATA;
+                = vlSelfRef.axi4_lite_slave__DOT__WDATA;
             __VdlyDim0__axi4_lite_slave__DOT__memory__v0 
-                = (0x3ffU & (vlSelfRef.AWADDR >> 2U));
+                = (0x3ffU & (vlSelfRef.axi4_lite_slave__DOT__AWADDR 
+                             >> 2U));
             __VdlySet__axi4_lite_slave__DOT__memory__v0 = 1U;
         } else {
             __Vdly__axi4_lite_slave__DOT__WREADY = 0U;
         }
         if (((IData)(vlSelfRef.axi4_lite_slave__DOT__WREADY) 
-             & (IData)(vlSelfRef.WVALID))) {
+             & (IData)(vlSelfRef.axi4_lite_slave__DOT__WVALID))) {
             __Vdly__axi4_lite_slave__DOT__BVALID = 1U;
             vlSelfRef.axi4_lite_slave__DOT__BRESP = 0U;
-        } else if (((IData)(vlSelfRef.BREADY) & (IData)(vlSelfRef.axi4_lite_slave__DOT__BVALID))) {
+        } else if (((IData)(vlSelfRef.axi4_lite_slave__DOT__BREADY) 
+                    & (IData)(vlSelfRef.axi4_lite_slave__DOT__BVALID))) {
             __Vdly__axi4_lite_slave__DOT__BVALID = 0U;
             __Vdly__axi4_lite_slave__DOT__write_state = 0U;
         }

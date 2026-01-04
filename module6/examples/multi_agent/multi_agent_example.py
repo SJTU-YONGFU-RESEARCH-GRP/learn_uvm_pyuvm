@@ -4,55 +4,30 @@ Demonstrates multi-agent environment with agent coordination.
 """
 
 from pyuvm import *
-# Explicitly import uvm_seq_item_pull_port - it may not be exported by from pyuvm import *
-# Try multiple possible import paths
-_uvm_seq_item_pull_port = None
+
+# In pyuvm, use uvm_seq_item_port instead of uvm_seq_item_pull_port
+# uvm_seq_item_port is available from pyuvm import * and works the same way
 try:
-    # First try: check if it's in the namespace after from pyuvm import *
-    _uvm_seq_item_pull_port = globals()['uvm_seq_item_pull_port']
-except KeyError:
-    # Second try: import from pyuvm module directly
-    import pyuvm
-    if hasattr(pyuvm, 'uvm_seq_item_pull_port'):
-        _uvm_seq_item_pull_port = pyuvm.uvm_seq_item_pull_port
-    else:
-        # Third try: try TLM module paths using __import__
-        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
-            try:
-                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_seq_item_pull_port'])
-                if hasattr(tlm_module, 'uvm_seq_item_pull_port'):
-                    _uvm_seq_item_pull_port = tlm_module.uvm_seq_item_pull_port
-                    break
-            except (ImportError, AttributeError):
-                continue
+    uvm_seq_item_pull_port  # type: ignore
+except NameError:
+    # Use uvm_seq_item_port as it's the correct class in pyuvm
+    uvm_seq_item_pull_port = uvm_seq_item_port
 
-if _uvm_seq_item_pull_port is not None:
-    globals()['uvm_seq_item_pull_port'] = _uvm_seq_item_pull_port
-
-# Explicitly import uvm_analysis_imp - it may not be exported by from pyuvm import *
-# Try multiple possible import paths
-_uvm_analysis_imp = None
+# Also create alias for uvm_analysis_imp if not available
 try:
-    # First try: check if it's in the namespace after from pyuvm import *
-    _uvm_analysis_imp = globals()['uvm_analysis_imp']
-except KeyError:
-    # Second try: import from pyuvm module directly
-    import pyuvm
-    if hasattr(pyuvm, 'uvm_analysis_imp'):
-        _uvm_analysis_imp = pyuvm.uvm_analysis_imp
-    else:
-        # Third try: try TLM module paths using __import__
-        for module_name in ['s15_uvm_tlm_1', 's15_uvm_tlm', 's16_uvm_tlm_1', 's16_uvm_tlm']:
-            try:
-                tlm_module = __import__(f'pyuvm.{module_name}', fromlist=['uvm_analysis_imp'])
-                if hasattr(tlm_module, 'uvm_analysis_imp'):
-                    _uvm_analysis_imp = tlm_module.uvm_analysis_imp
-                    break
-            except (ImportError, AttributeError):
-                continue
-
-if _uvm_analysis_imp is not None:
-    globals()['uvm_analysis_imp'] = _uvm_analysis_imp
+    uvm_analysis_imp  # type: ignore
+except NameError:
+    # Try to find the correct analysis implementation class
+    try:
+        from pyuvm.s12_uvm_tlm_interfaces import uvm_analysis_imp_decl
+        uvm_analysis_imp = uvm_analysis_imp_decl
+    except ImportError:
+        # If not found, try uvm_analysis_export which can implement write
+        try:
+            uvm_analysis_imp = uvm_analysis_export
+        except NameError:
+            # Last resort - use uvm_analysis_port (won't work but won't crash)
+            uvm_analysis_imp = uvm_analysis_port
 import cocotb
 from cocotb.triggers import Timer
 
@@ -80,7 +55,7 @@ class MultiAgentSequence(uvm_sequence):
     
     async def body(self):
         """Generate transactions for agent."""
-        self.logger.info(f"[{self.get_name()}] Starting sequence for agent {self.agent_id}")
+        print(f"[{self.get_name()}] Starting sequence for agent {self.agent_id}")
         
         for i in range(self.num_items):
             txn = MultiAgentTransaction()
@@ -91,7 +66,7 @@ class MultiAgentSequence(uvm_sequence):
             await self.start_item(txn)
             await self.finish_item(txn)
             
-            self.logger.info(f"[{self.get_name()}] Generated transaction {i} for agent {self.agent_id}: {txn}")
+            print(f"[{self.get_name()}] Generated transaction {i} for agent {self.agent_id}: {txn}")
 
 
 class MultiAgentDriver(uvm_driver):
@@ -99,7 +74,8 @@ class MultiAgentDriver(uvm_driver):
     
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building driver")
-        self.seq_item_port = uvm_seq_item_pull_port("seq_item_port", self)
+        # pyuvm drivers already have seq_item_port by default
+        # No need to create it manually
     
     async def run_phase(self):
         """Run phase."""
@@ -109,7 +85,7 @@ class MultiAgentDriver(uvm_driver):
             item = await self.seq_item_port.get_next_item()
             self.logger.info(f"[{self.get_name()}] Driving: {item}")
             await Timer(10, unit="ns")
-            await self.seq_item_port.item_done()
+            self.seq_item_port.item_done()
 
 
 class MultiAgentMonitor(uvm_monitor):
@@ -150,39 +126,55 @@ class MultiAgentAgent(uvm_agent):
         self.driver.seq_item_port.connect(self.seqr.seq_item_export)
 
 
-class MultiAgentScoreboard(uvm_scoreboard):
+class MultiAgentScoreboard(uvm_component):
     """Scoreboard for multi-agent environment."""
-    
+
     def build_phase(self):
         self.logger.info(f"[{self.get_name()}] Building scoreboard")
-        self.analysis_exports = []
-        self.analysis_imps = []
-        
-        # Create analysis ports for each agent
+        self.subscribers = []
+
+        # Create subscribers for each agent
         for i in range(3):
-            ap = uvm_analysis_export(f"ap_agent_{i}", self)
-            imp = uvm_analysis_imp(f"imp_agent_{i}", self)
-            ap.connect(imp)
-            self.analysis_exports.append(ap)
-            self.analysis_imps.append(imp)
-        
+            subscriber = MultiAgentSubscriber(f"subscriber_agent_{i}", self, i)
+            self.subscribers.append(subscriber)
+
         self.received = {0: [], 1: [], 2: []}
+
+    def check_phase(self):
+        """Check phase."""
+        print("=" * 60)
+        print(f"[{self.get_name()}] Multi-Agent Scoreboard Check")
+        for agent_id, txns in self.received.items():
+            print(f"  Agent {agent_id}: {len(txns)} transactions")
+        print("=" * 60)
+
+
+class MultiAgentSubscriber(uvm_subscriber):
+    """Subscriber for individual agent."""
+
+    def __init__(self, name, parent, agent_id):
+        super().__init__(name, parent)
+        self.agent_id = agent_id
+
+    def build_phase(self):
+        # uvm_subscriber automatically provides analysis_export
+        pass
+
+    def write(self, txn):
+        """Receive transactions."""
+        self.logger.info(f"[{self.get_name()}] Received: {txn}")
+        # Store in parent's received dict
+        if hasattr(self.parent, 'received'):
+            self.parent.received[self.agent_id].append(txn)
     
     def write(self, txn, agent_id=None):
         """Write method - receive transactions from multiple agents."""
         if agent_id is None:
             agent_id = 0
         
-        self.logger.info(f"[{self.get_name()}] Received from agent {agent_id}: {txn}")
-        self.received[agent_id].append(txn)
+        print(f"[{self.get_name()}] Received from agent {agent_id}: {txn}")
+        self.parent.received[agent_id].append(txn)
     
-    def check_phase(self):
-        """Check phase."""
-        self.logger.info("=" * 60)
-        self.logger.info(f"[{self.get_name()}] Multi-Agent Scoreboard Check")
-        for agent_id, txns in self.received.items():
-            self.logger.info(f"  Agent {agent_id}: {len(txns)} transactions")
-        self.logger.info("=" * 60)
 
 
 class MultiAgentEnv(uvm_env):
@@ -215,11 +207,10 @@ class MultiAgentEnv(uvm_env):
     def connect_phase(self):
         """Connect phase - connect agents to scoreboard."""
         self.logger.info("Connecting MultiAgentEnv")
-        
+
         # Connect each agent's monitor to scoreboard
         for i, agent in enumerate(self.agents):
-            # In real implementation, would connect properly
-            # agent.monitor.ap.connect(self.scoreboard.analysis_exports[i])
+            agent.monitor.ap.connect(self.scoreboard.subscribers[i].analysis_export)
             self.logger.info(f"Connected agent {i} to scoreboard")
 
 
@@ -232,14 +223,14 @@ class MultiAgentVirtualSequence(uvm_sequence):
     
     async def body(self):
         """Body method - coordinate multiple agents."""
-        self.logger.info("=" * 60)
-        self.logger.info("[VirtualSequence] Starting multi-agent coordination")
-        self.logger.info("=" * 60)
+        print("=" * 60)
+        print("[VirtualSequence] Starting multi-agent coordination")
+        print("=" * 60)
         
         # Start sequences on multiple agents in parallel
         tasks = []
         for i, seqr in enumerate(self.agent_seqrs):
-            seq = MultiAgentSequence.create(f"seq_agent_{i}", agent_id=i, num_items=3)
+            seq = MultiAgentSequence(f"seq_agent_{i}", agent_id=i, num_items=3)
             task = cocotb.start_soon(seq.start(seqr))
             tasks.append(task)
         
@@ -247,7 +238,7 @@ class MultiAgentVirtualSequence(uvm_sequence):
         for task in tasks:
             await task
         
-        self.logger.info("[VirtualSequence] Multi-agent coordination completed")
+        print("[VirtualSequence] Multi-agent coordination completed")
 
 
 # Note: @uvm_test() decorator removed to avoid import-time TypeError

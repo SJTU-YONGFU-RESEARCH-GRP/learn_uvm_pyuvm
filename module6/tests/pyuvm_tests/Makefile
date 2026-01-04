@@ -2,7 +2,7 @@
 # Usage: make SIM=verilator TEST=test_complex_testbench
 
 # Default simulator
-SIM ?= verilator
+SIM ?= icarus
 
 # Python files
 PYTHON_FILES = test_complex_testbench.py

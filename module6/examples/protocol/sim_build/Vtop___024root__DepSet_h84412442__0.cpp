@@ -32,12 +32,14 @@ void Vtop___024root___eval_triggers__act(Vtop___024root* vlSelf) {
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelfRef.__VactTriggered.setBit(0U, ((IData)(vlSelfRef.ACLK) 
-                                          & (~ (IData)(vlSelfRef.__Vtrigprevexpr___TOP__ACLK__0))));
-    vlSelfRef.__VactTriggered.setBit(1U, ((~ (IData)(vlSelfRef.ARESETn)) 
-                                          & (IData)(vlSelfRef.__Vtrigprevexpr___TOP__ARESETn__0)));
-    vlSelfRef.__Vtrigprevexpr___TOP__ACLK__0 = vlSelfRef.ACLK;
-    vlSelfRef.__Vtrigprevexpr___TOP__ARESETn__0 = vlSelfRef.ARESETn;
+    vlSelfRef.__VactTriggered.setBit(0U, ((IData)(vlSelfRef.axi4_lite_slave__DOT__ACLK) 
+                                          & (~ (IData)(vlSelfRef.__Vtrigprevexpr___TOP__axi4_lite_slave__DOT__ACLK__0))));
+    vlSelfRef.__VactTriggered.setBit(1U, ((~ (IData)(vlSelfRef.axi4_lite_slave__DOT__ARESETn)) 
+                                          & (IData)(vlSelfRef.__Vtrigprevexpr___TOP__axi4_lite_slave__DOT__ARESETn__0)));
+    vlSelfRef.__Vtrigprevexpr___TOP__axi4_lite_slave__DOT__ACLK__0 
+        = vlSelfRef.axi4_lite_slave__DOT__ACLK;
+    vlSelfRef.__Vtrigprevexpr___TOP__axi4_lite_slave__DOT__ARESETn__0 
+        = vlSelfRef.axi4_lite_slave__DOT__ARESETn;
 #ifdef VL_DEBUG
     if (VL_UNLIKELY(vlSymsp->_vm_contextp__->debug())) {
         Vtop___024root___dump_triggers__act(vlSelf);

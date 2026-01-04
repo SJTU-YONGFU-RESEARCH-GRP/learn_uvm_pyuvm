@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1767531840" />
+    <testcase name="test_multi_agent" classname="multi_agent_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module6/examples/multi_agent/multi_agent_example.py" lineno="276" time="0.008397817611694336" sim_time_ns="130.0" ratio_time="15480.212361241234" />
+  </testsuite>
+</testsuites>

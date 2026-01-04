@@ -2,7 +2,7 @@
 # Usage: make SIM=verilator
 
 # Default simulator
-SIM ?= verilator
+SIM ?= icarus
 
 # Python test file
 PYTHON_FILES = protocol_example.py
