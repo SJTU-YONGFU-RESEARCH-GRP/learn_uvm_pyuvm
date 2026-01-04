@@ -1,6 +1,6 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767529239" />
-    <testcase name="test_coverage" classname="coverage_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module5/examples/coverage/coverage_example.py" lineno="188" time="0.0035028457641601562" sim_time_ns="100.0" ratio_time="28548.216716580453" />
+    <property name="random_seed" value="1767531131" />
+    <testcase name="test_coverage" classname="coverage_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module5/examples/coverage/coverage_example.py" lineno="188" time="0.0032961368560791016" sim_time_ns="100.0" ratio_time="30338.54611211573" />
   </testsuite>
 </testsuites>

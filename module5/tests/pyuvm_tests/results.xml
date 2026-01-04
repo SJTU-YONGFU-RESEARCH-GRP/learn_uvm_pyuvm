@@ -1,6 +1,6 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767529245" />
-    <testcase name="test_advanced_uvm" classname="test_advanced_uvm" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module5/tests/pyuvm_tests/test_advanced_uvm.py" lineno="170" time="0.0040285587310791016" sim_time_ns="150.0" ratio_time="37234.1599100432" />
+    <property name="random_seed" value="1767531144" />
+    <testcase name="test_advanced_uvm" classname="test_advanced_uvm" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module5/tests/pyuvm_tests/test_advanced_uvm.py" lineno="170" time="0.0036058425903320312" sim_time_ns="150.0" ratio_time="41599.1536630521" />
   </testsuite>
 </testsuites>

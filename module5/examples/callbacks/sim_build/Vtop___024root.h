@@ -14,6 +14,8 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
   public:
 
     // DESIGN SPECIFIC STATE
+    CData/*0:0*/ multi_channel__DOT__clk;
+    CData/*0:0*/ multi_channel__DOT__rst_n;
     VL_IN8(clk,0,0);
     VL_IN8(rst_n,0,0);
     VL_IN8(master_valid,0,0);
@@ -22,8 +24,6 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
     VL_IN8(slave_valid,0,0);
     VL_OUT8(slave_ready,0,0);
     VL_IN8(slave_data,7,0);
-    CData/*0:0*/ multi_channel__DOT__clk;
-    CData/*0:0*/ multi_channel__DOT__rst_n;
     CData/*0:0*/ multi_channel__DOT__master_valid;
     CData/*0:0*/ multi_channel__DOT__master_ready;
     CData/*7:0*/ multi_channel__DOT__master_data;
@@ -32,8 +32,8 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
     CData/*7:0*/ multi_channel__DOT__slave_data;
     CData/*0:0*/ __VstlFirstIteration;
     CData/*0:0*/ __VicoFirstIteration;
-    CData/*0:0*/ __Vtrigprevexpr___TOP__clk__0;
-    CData/*0:0*/ __Vtrigprevexpr___TOP__rst_n__0;
+    CData/*0:0*/ __Vtrigprevexpr___TOP__multi_channel__DOT__clk__0;
+    CData/*0:0*/ __Vtrigprevexpr___TOP__multi_channel__DOT__rst_n__0;
     CData/*0:0*/ __VactContinue;
     IData/*31:0*/ __VactIterCount;
     VlTriggerVec<1> __VstlTriggered;

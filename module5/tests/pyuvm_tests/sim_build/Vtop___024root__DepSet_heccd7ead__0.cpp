@@ -25,11 +25,11 @@ VL_INLINE_OPT void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) 
     vlSelfRef.multi_channel__DOT__clk = vlSelfRef.clk;
     vlSelfRef.multi_channel__DOT__rst_n = vlSelfRef.rst_n;
     vlSelfRef.multi_channel__DOT__master_valid = vlSelfRef.master_valid;
+    vlSelfRef.master_ready = vlSelfRef.multi_channel__DOT__master_ready;
     vlSelfRef.multi_channel__DOT__master_data = vlSelfRef.master_data;
     vlSelfRef.multi_channel__DOT__slave_valid = vlSelfRef.slave_valid;
-    vlSelfRef.multi_channel__DOT__slave_data = vlSelfRef.slave_data;
-    vlSelfRef.master_ready = vlSelfRef.multi_channel__DOT__master_ready;
     vlSelfRef.slave_ready = vlSelfRef.multi_channel__DOT__slave_ready;
+    vlSelfRef.multi_channel__DOT__slave_data = vlSelfRef.slave_data;
 }
 
 void Vtop___024root___eval_triggers__ico(Vtop___024root* vlSelf);
@@ -72,10 +72,10 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelfRef.multi_channel__DOT__master_ready = ((IData)(vlSelfRef.rst_n) 
-                                                  && (IData)(vlSelfRef.master_valid));
-    vlSelfRef.multi_channel__DOT__slave_ready = ((IData)(vlSelfRef.rst_n) 
-                                                 && (IData)(vlSelfRef.slave_valid));
+    vlSelfRef.multi_channel__DOT__master_ready = ((IData)(vlSelfRef.multi_channel__DOT__rst_n) 
+                                                  && (IData)(vlSelfRef.multi_channel__DOT__master_valid));
+    vlSelfRef.multi_channel__DOT__slave_ready = ((IData)(vlSelfRef.multi_channel__DOT__rst_n) 
+                                                 && (IData)(vlSelfRef.multi_channel__DOT__slave_valid));
     vlSelfRef.master_ready = vlSelfRef.multi_channel__DOT__master_ready;
     vlSelfRef.slave_ready = vlSelfRef.multi_channel__DOT__slave_ready;
 }

@@ -1,5 +1,5 @@
 // Verilated -*- C++ -*-
-// DESCRIPTION: Verilator output: Implementation of DPI export functions
+// DESCRIPTION: Verilator output: Implementation of DPI export functions.
 //
 // Verilator compiles this file in when DPI functions are used.
 // If you have multiple Verilated designs with the same DPI exported

@@ -28,7 +28,7 @@ RUN_CALLBACKS=false
 RUN_REGISTER_MODEL=false
 RUN_PYUVM_TESTS=true
 USE_VENV=true
-SIMULATOR="icarus"
+SIMULATOR="verilator"
 
 # Function to print colored output
 print_status() {
@@ -146,22 +146,28 @@ check_prerequisites() {
 run_python_example() {
     local example_dir=$1
     local example_name=$2
-    
+
     print_header "Running: $example_name"
-    
+
     if [[ "$USE_VENV" == true ]] && [[ -d "$VENV_DIR" ]] && [[ -f "$VENV_DIR/bin/activate" ]]; then
         source "$VENV_DIR/bin/activate"
     fi
-    
+
     # Check if Makefile exists
     if [[ ! -f "$MODULE5_DIR/examples/$example_dir/Makefile" ]]; then
         print_status $RED "✗ Makefile not found for $example_name"
         return 1
     fi
-    
+
+    # Set library path for cocotb VPI libraries
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(cocotb-config --lib-dir)"
+
     # Run with cocotb using make
     cd "$MODULE5_DIR/examples/$example_dir"
-    
+
+    # Clean previous build to avoid path issues
+    make clean > /dev/null 2>&1 || true
+
     print_status $BLUE "Running pyuvm test for $example_name..."
     if make SIM="$SIMULATOR" 2>&1 | tee "/tmp/pyuvm_${example_dir}.log"; then
         print_status $GREEN "✓ $example_name completed successfully"
@@ -177,13 +183,19 @@ run_python_example() {
 # Function to run pyuvm tests
 run_pyuvm_tests() {
     print_header "Running pyuvm Tests"
-    
+
     if [[ "$USE_VENV" == true ]] && [[ -d "$VENV_DIR" ]] && [[ -f "$VENV_DIR/bin/activate" ]]; then
         source "$VENV_DIR/bin/activate"
     fi
-    
+
+    # Set library path for cocotb VPI libraries
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(cocotb-config --lib-dir)"
+
     cd "$MODULE5_DIR/tests/pyuvm_tests"
-    
+
+    # Clean previous build to avoid path issues
+    make clean > /dev/null 2>&1 || true
+
     print_status $BLUE "Running advanced UVM test..."
     if make SIM="$SIMULATOR" TEST=test_advanced_uvm 2>&1 | tee /tmp/pyuvm_test.log; then
         print_status $GREEN "✓ pyuvm test passed"

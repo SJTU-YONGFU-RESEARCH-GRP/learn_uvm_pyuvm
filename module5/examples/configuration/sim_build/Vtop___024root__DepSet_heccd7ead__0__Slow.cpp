@@ -10,8 +10,10 @@ VL_ATTR_COLD void Vtop___024root___eval_static(Vtop___024root* vlSelf) {
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelfRef.__Vtrigprevexpr___TOP__clk__0 = vlSelfRef.clk;
-    vlSelfRef.__Vtrigprevexpr___TOP__rst_n__0 = vlSelfRef.rst_n;
+    vlSelfRef.__Vtrigprevexpr___TOP__multi_channel__DOT__clk__0 
+        = vlSelfRef.multi_channel__DOT__clk;
+    vlSelfRef.__Vtrigprevexpr___TOP__multi_channel__DOT__rst_n__0 
+        = vlSelfRef.multi_channel__DOT__rst_n;
 }
 
 VL_ATTR_COLD void Vtop___024root___eval_initial(Vtop___024root* vlSelf) {
@@ -127,10 +129,10 @@ VL_ATTR_COLD void Vtop___024root___dump_triggers__act(Vtop___024root* vlSelf) {
         VL_DBG_MSGF("         No triggers active\n");
     }
     if ((1ULL & vlSelfRef.__VactTriggered.word(0U))) {
-        VL_DBG_MSGF("         'act' region trigger index 0 is active: @(posedge clk)\n");
+        VL_DBG_MSGF("         'act' region trigger index 0 is active: @(posedge multi_channel.clk)\n");
     }
     if ((2ULL & vlSelfRef.__VactTriggered.word(0U))) {
-        VL_DBG_MSGF("         'act' region trigger index 1 is active: @(negedge rst_n)\n");
+        VL_DBG_MSGF("         'act' region trigger index 1 is active: @(negedge multi_channel.rst_n)\n");
     }
 }
 #endif  // VL_DEBUG
@@ -145,10 +147,10 @@ VL_ATTR_COLD void Vtop___024root___dump_triggers__nba(Vtop___024root* vlSelf) {
         VL_DBG_MSGF("         No triggers active\n");
     }
     if ((1ULL & vlSelfRef.__VnbaTriggered.word(0U))) {
-        VL_DBG_MSGF("         'nba' region trigger index 0 is active: @(posedge clk)\n");
+        VL_DBG_MSGF("         'nba' region trigger index 0 is active: @(posedge multi_channel.clk)\n");
     }
     if ((2ULL & vlSelfRef.__VnbaTriggered.word(0U))) {
-        VL_DBG_MSGF("         'nba' region trigger index 1 is active: @(negedge rst_n)\n");
+        VL_DBG_MSGF("         'nba' region trigger index 1 is active: @(negedge multi_channel.rst_n)\n");
     }
 }
 #endif  // VL_DEBUG
@@ -158,22 +160,23 @@ VL_ATTR_COLD void Vtop___024root___ctor_var_reset(Vtop___024root* vlSelf) {
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelf->clk = VL_RAND_RESET_I(1);
-    vlSelf->rst_n = VL_RAND_RESET_I(1);
-    vlSelf->master_valid = VL_RAND_RESET_I(1);
-    vlSelf->master_ready = VL_RAND_RESET_I(1);
-    vlSelf->master_data = VL_RAND_RESET_I(8);
-    vlSelf->slave_valid = VL_RAND_RESET_I(1);
-    vlSelf->slave_ready = VL_RAND_RESET_I(1);
-    vlSelf->slave_data = VL_RAND_RESET_I(8);
-    vlSelf->multi_channel__DOT__clk = VL_RAND_RESET_I(1);
-    vlSelf->multi_channel__DOT__rst_n = VL_RAND_RESET_I(1);
-    vlSelf->multi_channel__DOT__master_valid = VL_RAND_RESET_I(1);
-    vlSelf->multi_channel__DOT__master_ready = VL_RAND_RESET_I(1);
-    vlSelf->multi_channel__DOT__master_data = VL_RAND_RESET_I(8);
-    vlSelf->multi_channel__DOT__slave_valid = VL_RAND_RESET_I(1);
-    vlSelf->multi_channel__DOT__slave_ready = VL_RAND_RESET_I(1);
-    vlSelf->multi_channel__DOT__slave_data = VL_RAND_RESET_I(8);
-    vlSelf->__Vtrigprevexpr___TOP__clk__0 = VL_RAND_RESET_I(1);
-    vlSelf->__Vtrigprevexpr___TOP__rst_n__0 = VL_RAND_RESET_I(1);
+    const uint64_t __VscopeHash = VL_MURMUR64_HASH(vlSelf->name());
+    vlSelf->clk = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 16707436170211756652ull);
+    vlSelf->rst_n = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 1638864771569018232ull);
+    vlSelf->master_valid = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 7453635641263710578ull);
+    vlSelf->master_ready = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 267544514716806893ull);
+    vlSelf->master_data = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 3957740564959404931ull);
+    vlSelf->slave_valid = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 10561344349760302ull);
+    vlSelf->slave_ready = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 2028147857414130077ull);
+    vlSelf->slave_data = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 98112371525093341ull);
+    vlSelf->multi_channel__DOT__clk = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 2991241936703271779ull);
+    vlSelf->multi_channel__DOT__rst_n = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 17343405178417317243ull);
+    vlSelf->multi_channel__DOT__master_valid = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 12133065054762925463ull);
+    vlSelf->multi_channel__DOT__master_ready = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 12862551606855031105ull);
+    vlSelf->multi_channel__DOT__master_data = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 7328976726538393808ull);
+    vlSelf->multi_channel__DOT__slave_valid = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 4670350785220011004ull);
+    vlSelf->multi_channel__DOT__slave_ready = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 17729094452889828121ull);
+    vlSelf->multi_channel__DOT__slave_data = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 17445921413765256808ull);
+    vlSelf->__Vtrigprevexpr___TOP__multi_channel__DOT__clk__0 = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 17611448602913376315ull);
+    vlSelf->__Vtrigprevexpr___TOP__multi_channel__DOT__rst_n__0 = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 12681440315882900231ull);
 }

@@ -1,6 +1,6 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767529242" />
-    <testcase name="test_callback" classname="callback_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module5/examples/callbacks/callback_example.py" lineno="159" time="0.003722667694091797" sim_time_ns="50.0" ratio_time="13431.228384782888" />
+    <property name="random_seed" value="1767531138" />
+    <testcase name="test_callback" classname="callback_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module5/examples/callbacks/callback_example.py" lineno="159" time="0.0028426647186279297" sim_time_ns="50.0" ratio_time="17589.13025245324" />
   </testsuite>
 </testsuites>
