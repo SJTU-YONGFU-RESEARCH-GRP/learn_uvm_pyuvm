@@ -98,21 +98,21 @@ async def test_clock_class(dut):
 
 ```
 ┌─────────────────────────────────────────┐
-│  Python Testbench                      │
-│  - Generates clock signals             │
-│  - Drives inputs (d, enable, rst_n)    │
-│  - Monitors outputs (q)                │
-│  - Checks correctness                  │
+│  Python Testbench                       │
+│  - Generates clock signals              │
+│  - Drives inputs (d, enable, rst_n)     │
+│  - Monitors outputs (q)                 │
+│  - Checks correctness                   │
 └──────────────┬──────────────────────────┘
                │
                │ Cocotb Bridge
                │ (dut.clk, dut.d, dut.q)
                │
 ┌──────────────▼──────────────────────────┐
-│  Verilog DUT (simple_register)         │
-│  - Receives clock on clk port          │
-│  - Processes data on clock edges       │
-│  - Outputs q register value            │
+│  Verilog DUT (simple_register)          │
+│  - Receives clock on clk port           │
+│  - Processes data on clock edges        │
+│  - Outputs q register value             │
 └─────────────────────────────────────────┘
 ```
 
@@ -555,4 +555,5 @@ When you run a Cocotb test, here's the complete flow:
 ---
 
 **Remember**: Understanding how Python and Verilog interact is fundamental to hardware verification. The `dut` object is your window into the Verilog world, and Cocotb keeps everything synchronized in simulation time.
+
 
