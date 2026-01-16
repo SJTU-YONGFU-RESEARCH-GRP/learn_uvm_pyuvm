@@ -26,14 +26,12 @@ VM_TRACE_VCD = 0
 # Generated module classes, fast-path, compile with highest optimization
 VM_CLASSES_FAST += \
   Vtop \
-  Vtop___024root__DepSet_h84412442__0 \
-  Vtop___024root__DepSet_heccd7ead__0 \
+  Vtop___024root__0 \
 
 # Generated module classes, non-fast-path, compile with low/medium optimization
 VM_CLASSES_SLOW += \
   Vtop___024root__Slow \
-  Vtop___024root__DepSet_h84412442__0__Slow \
-  Vtop___024root__DepSet_heccd7ead__0__Slow \
+  Vtop___024root__0__Slow \
 
 # Generated support classes, fast-path, compile with highest optimization
 VM_SUPPORT_FAST += \
@@ -41,7 +39,7 @@ VM_SUPPORT_FAST += \
 
 # Generated support classes, non-fast-path, compile with low/medium optimization
 VM_SUPPORT_SLOW += \
-  Vtop__Syms \
+  Vtop__Syms__Slow \
 
 # Global classes, need linked once per executable, fast-path, compile with highest optimization
 VM_GLOBAL_FAST += \

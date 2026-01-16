@@ -36,7 +36,7 @@ async def test_shift_register_reset(dut):
     await reset_dut(dut)
     
     assert dut.q.value.integer == 0, "Shift register should be reset"
-    assert dut.data_out.value.integer == 0, "Data out should be reset"
+    assert int(dut.data_out.value) == 0, "Data out should be reset"
 
 
 @cocotb.test()
@@ -92,7 +92,7 @@ async def test_shift_register_serial_out(dut):
     for i in range(8):
         await RisingEdge(dut.clk)
         await Timer(1, units="ns")
-        expected_bits.append(dut.data_out.value.integer)
+        expected_bits.append(int(dut.data_out.value))
     
     print(f"Serial output: {expected_bits}")
 

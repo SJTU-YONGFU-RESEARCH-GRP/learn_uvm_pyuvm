@@ -1,0 +1,8 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1768573695" />
+    <testcase name="test_shift_register_reset" classname="test_shift_register" file="/home/yongfu/proj/learn_uvm_pyuvm/module2/tests/cocotb_tests/test_shift_register.py" lineno="30" time="0.0008587837219238281" sim_time_ns="60.0" ratio_time="69866.25208217656" />
+    <testcase name="test_shift_register_operation" classname="test_shift_register" file="/home/yongfu/proj/learn_uvm_pyuvm/module2/tests/cocotb_tests/test_shift_register.py" lineno="42" time="0.0004737377166748047" sim_time_ns="131.0" ratio_time="276524.3200805234" />
+    <testcase name="test_shift_register_serial_out" classname="test_shift_register" file="/home/yongfu/proj/learn_uvm_pyuvm/module2/tests/cocotb_tests/test_shift_register.py" lineno="75" time="0.0014770030975341797" sim_time_ns="211.0" ratio_time="142856.84326069412" />
+  </testsuite>
+</testsuites>

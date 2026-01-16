@@ -51,13 +51,17 @@ class AndGateDriver(uvm_driver):
     
     In a real cocotb+pyuvm testbench, the DUT would be accessed via
     cocotb handles. This example shows the pattern for driving signals.
+    
+    Note: pyuvm drivers already have seq_item_port by default, so we don't
+    need to create it explicitly in build_phase.
     """
     
     def build_phase(self):
-        """Build phase: create sequence item port."""
-        self.seq_item_port = uvm_seq_item_pull_port("seq_item_port", self)
+        """Build phase: driver setup."""
+        # pyuvm drivers already have seq_item_port by default
         # In real implementation with cocotb:
         # self.dut = cocotb.top  # Access DUT from cocotb
+        pass
     
     async def run_phase(self):
         """
@@ -77,12 +81,12 @@ class AndGateDriver(uvm_driver):
             # In real cocotb implementation:
             # self.dut.a.value = txn.a
             # self.dut.b.value = txn.b
-            # await Timer(10, units="ns")  # Wait for combinational logic
+            # await Timer(10, unit="ns")  # Wait for combinational logic
             
             self.logger.info(f"Driving DUT: a={txn.a}, b={txn.b} (expected y={txn.expected_y})")
             
-            # Signal completion to sequencer
-            await self.seq_item_port.item_done()
+            # Signal completion to sequencer (item_done() is not awaitable)
+            self.seq_item_port.item_done()
 
 
 class AndGateMonitor(uvm_monitor):
@@ -122,7 +126,7 @@ class AndGateMonitor(uvm_monitor):
             # Send to scoreboard via analysis port
             # self.ap.write(observed_txn)
             
-            await Timer(10, units="ns")  # Wait for next sampling point
+            await Timer(10, unit="ns")  # Wait for next sampling point
             self.logger.info("Monitoring DUT: sampling output y")
 
 
@@ -148,22 +152,38 @@ class AndGateEnv(uvm_env):
         pass
 
 
-@uvm_test()
+# Note: @uvm_test() decorator removed to avoid import-time TypeError
+# Using cocotb test wrapper instead for compatibility with cocotb test discovery
 class AndGateTest(uvm_test):
     """Test class for AND gate."""
     
-    async def build_phase(self):
+    def build_phase(self):
         self.env = AndGateEnv.create("env", self)
     
     async def run_phase(self):
         self.raise_objection()
         seq = AndGateSequence.create("seq")
         await seq.start(self.env.agent.seqr)
-        await Timer(100, units="ns")
+        await Timer(100, unit="ns")
         self.drop_objection()
     
     def check_phase(self):
         self.logger.info("Checking test results")
+
+
+# Cocotb test function to run the pyuvm test
+import cocotb
+from cocotb.triggers import Timer
+
+@cocotb.test()
+async def test_and_gate_uvm(dut):
+    """Cocotb test wrapper for pyuvm test."""
+    # Register the test class with uvm_root so run_test can find it
+    if not hasattr(uvm_root(), 'm_uvm_test_classes'):
+        uvm_root().m_uvm_test_classes = {}
+    uvm_root().m_uvm_test_classes["AndGateTest"] = AndGateTest
+    # Use uvm_root to run the test properly (executes all phases in hierarchy)
+    await uvm_root().run_test("AndGateTest")
 
 
 if __name__ == "__main__":

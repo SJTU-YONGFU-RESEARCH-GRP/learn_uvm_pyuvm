@@ -26,8 +26,8 @@ RUN_DECORATORS=true
 RUN_ASYNC_AWAIT=true
 RUN_DATA_STRUCTURES=true
 RUN_ERROR_HANDLING=true
-RUN_COCOTB_TESTS=false
-RUN_PYUVM_TESTS=false
+RUN_COCOTB_TESTS=true
+RUN_PYUVM_TESTS=true
 USE_VENV=true
 SIMULATOR="verilator"
 
@@ -167,25 +167,42 @@ run_cocotb_tests() {
         source "$VENV_DIR/bin/activate"
     fi
     
-    cd "$MODULE1_DIR/tests/cocotb_tests"
+    cd "$MODULE1_DIR/tests/cocotb_tests" || {
+        print_status $RED "Error: Failed to change to cocotb tests directory"
+        return 1
+    }
     
     local failed=0
     
     # Run AND gate tests
     print_status $BLUE "Running AND gate tests..."
-    if make SIM="$SIMULATOR" TEST=test_and_gate 2>&1 | tee /tmp/cocotb_and_gate.log; then
+    # Clean previous build to ensure correct TOPLEVEL
+    make clean >/dev/null 2>&1 || true
+    set +e  # Temporarily disable exit on error to capture exit code
+    make SIM="$SIMULATOR" TEST=test_and_gate 2>&1 | tee /tmp/cocotb_and_gate.log
+    local exit_code=${PIPESTATUS[0]}
+    set -e  # Re-enable exit on error
+    if [[ $exit_code -eq 0 ]]; then
         print_status $GREEN "✓ AND gate tests passed"
     else
-        print_status $RED "✗ AND gate tests failed"
+        print_status $RED "✗ AND gate tests failed (exit code: $exit_code)"
+        print_status $YELLOW "Check /tmp/cocotb_and_gate.log for details"
         failed=$((failed + 1))
     fi
     
     # Run counter tests
     print_status $BLUE "Running counter tests..."
-    if make SIM="$SIMULATOR" TEST=test_counter 2>&1 | tee /tmp/cocotb_counter.log; then
+    # Clean previous build to ensure correct TOPLEVEL
+    make clean >/dev/null 2>&1 || true
+    set +e  # Temporarily disable exit on error to capture exit code
+    make SIM="$SIMULATOR" TEST=test_counter 2>&1 | tee /tmp/cocotb_counter.log
+    local exit_code=${PIPESTATUS[0]}
+    set -e  # Re-enable exit on error
+    if [[ $exit_code -eq 0 ]]; then
         print_status $GREEN "✓ Counter tests passed"
     else
-        print_status $RED "✗ Counter tests failed"
+        print_status $RED "✗ Counter tests failed (exit code: $exit_code)"
+        print_status $YELLOW "Check /tmp/cocotb_counter.log for details"
         failed=$((failed + 1))
     fi
     
@@ -208,15 +225,23 @@ run_pyuvm_tests() {
         source "$VENV_DIR/bin/activate"
     fi
     
-    cd "$MODULE1_DIR/tests/pyuvm_tests"
+    cd "$MODULE1_DIR/tests/pyuvm_tests" || {
+        print_status $RED "Error: Failed to change to pyuvm tests directory"
+        return 1
+    }
     
     print_status $BLUE "Running pyuvm AND gate test..."
-    if make SIM="$SIMULATOR" TEST=test_and_gate_uvm 2>&1 | tee /tmp/pyuvm_and_gate.log; then
+    set +e  # Temporarily disable exit on error to capture exit code
+    make SIM="$SIMULATOR" TEST=test_and_gate_uvm 2>&1 | tee /tmp/pyuvm_and_gate.log
+    local exit_code=${PIPESTATUS[0]}
+    set -e  # Re-enable exit on error
+    if [[ $exit_code -eq 0 ]]; then
         print_status $GREEN "✓ pyuvm AND gate test passed"
         cd "$PROJECT_ROOT"
         return 0
     else
-        print_status $RED "✗ pyuvm AND gate test failed"
+        print_status $RED "✗ pyuvm AND gate test failed (exit code: $exit_code)"
+        print_status $YELLOW "Check /tmp/pyuvm_and_gate.log for details"
         cd "$PROJECT_ROOT"
         return 1
     fi

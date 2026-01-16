@@ -19,9 +19,12 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TOOLS_DIR="$PROJECT_ROOT/tools"
 VERILATOR_DIR="$TOOLS_DIR/verilator"
 VERILATOR_REPO="git@github.com:verilator/verilator.git"
+VERILATOR_INSTALL_PREFIX="/usr/local"  # Default system installation
+LOCAL_INSTALL=false  # If true, install to project-local directory
 
 # Installation mode
 INSTALL_MODE="submodule"  # submodule, system, or source
+FORCE_REINSTALL=false
 
 # Function to print colored output
 print_status() {
@@ -38,6 +41,9 @@ show_usage() {
     echo "  --from-submodule    Install from git submodule in tools/verilator (default)"
     echo "  --system            Install using system package manager (apt/yum/brew)"
     echo "  --source            Build from source (clone if submodule doesn't exist)"
+    echo "  --force             Force reinstall even if Verilator is already installed"
+    echo "  --local             Install to project-local directory (no sudo required)"
+    echo "  --prefix PREFIX     Installation prefix (default: /usr/local)"
     echo "  --help, -h          Show this help message"
     echo ""
     echo "Examples:"
@@ -80,7 +86,7 @@ install_system_dependencies() {
     case $os in
         debian)
             sudo apt-get update
-            sudo apt-get install -y git perl python3 make autoconf g++ flex bison ccache
+            sudo apt-get install -y git perl python3 make autoconf g++ flex bison ccache help2man
             sudo apt-get install -y libgoogle-perftools-dev numactl perl-doc
             ;;
         rhel|fedora)
@@ -111,6 +117,12 @@ check_verilator_installed() {
     if command_exists verilator; then
         local version=$(verilator --version 2>&1 | head -1 || echo "unknown")
         print_status $YELLOW "Verilator is already installed: $version"
+        
+        if [[ "$FORCE_REINSTALL" == true ]]; then
+            print_status $BLUE "Force reinstall enabled, proceeding with installation..."
+            return 0
+        fi
+        
         read -p "Do you want to reinstall? (y/N): " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -158,7 +170,16 @@ install_from_system() {
 
 # Function to setup git submodule
 setup_submodule() {
-    if [[ ! -d "$VERILATOR_DIR" ]]; then
+    # Check if directory exists and is a valid git repository
+    if [[ -d "$VERILATOR_DIR" ]] && [[ -d "$VERILATOR_DIR/.git" ]]; then
+        print_status $BLUE "Verilator submodule directory exists, updating..."
+        cd "$VERILATOR_DIR"
+        git pull || true
+        cd "$PROJECT_ROOT"
+    elif [[ -d "$VERILATOR_DIR" ]] && [[ ! -d "$VERILATOR_DIR/.git" ]]; then
+        # Directory exists but is not a git repository (empty or corrupted)
+        print_status $YELLOW "Verilator directory exists but is not a git repository, removing and re-cloning..."
+        rm -rf "$VERILATOR_DIR"
         print_status $BLUE "Setting up Verilator git submodule..."
         
         # Check if we're in a git repository
@@ -173,10 +194,20 @@ setup_submodule() {
             git clone "$VERILATOR_REPO" "$VERILATOR_DIR"
         fi
     else
-        print_status $BLUE "Verilator submodule directory exists, updating..."
-        cd "$VERILATOR_DIR"
-        git pull || true
-        cd "$PROJECT_ROOT"
+        # Directory doesn't exist
+        print_status $BLUE "Setting up Verilator git submodule..."
+        
+        # Check if we're in a git repository
+        if git rev-parse --git-dir > /dev/null 2>&1; then
+            print_status $BLUE "Adding Verilator as git submodule..."
+            "$SCRIPT_DIR/add_submodule.sh" "$VERILATOR_REPO" "tools/verilator" || {
+                print_status $YELLOW "Failed to add as submodule, cloning directly..."
+                git clone "$VERILATOR_REPO" "$VERILATOR_DIR"
+            }
+        else
+            print_status $YELLOW "Not in a git repository, cloning directly..."
+            git clone "$VERILATOR_REPO" "$VERILATOR_DIR"
+        fi
     fi
 }
 
@@ -185,16 +216,37 @@ build_from_source() {
     print_status $BLUE "Building Verilator from source..."
     
     # Setup submodule if needed
-    setup_submodule
+    if ! setup_submodule; then
+        print_status $RED "Error: Failed to setup Verilator submodule"
+        exit 1
+    fi
     
-    cd "$VERILATOR_DIR"
+    # Verify the directory is now a valid git repository
+    if [[ ! -d "$VERILATOR_DIR/.git" ]]; then
+        print_status $RED "Error: Verilator directory is not a valid git repository"
+        exit 1
+    fi
+    
+    cd "$VERILATOR_DIR" || {
+        print_status $RED "Error: Failed to change to Verilator directory: $VERILATOR_DIR"
+        exit 1
+    }
     
     # Get latest stable version (if not already on a tag)
     print_status $BLUE "Checking out latest stable version..."
-    git fetch --tags
-    LATEST_TAG=$(git tag | grep -E '^v[0-9]+\.[0-9]+' | sort -V | tail -1)
+    if ! git fetch --tags; then
+        print_status $YELLOW "Warning: Failed to fetch tags, continuing with current branch"
+    fi
+    
+    LATEST_TAG=$(git tag | grep -E '^v[0-9]+\.[0-9]+' | sort -V | tail -1 || echo "")
     if [[ -n "$LATEST_TAG" ]]; then
-        git checkout "$LATEST_TAG" || print_status $YELLOW "Could not checkout tag, using current branch"
+        if ! git checkout "$LATEST_TAG"; then
+            print_status $YELLOW "Warning: Could not checkout tag $LATEST_TAG, using current branch"
+        else
+            print_status $GREEN "Checked out tag: $LATEST_TAG"
+        fi
+    else
+        print_status $YELLOW "Warning: No version tags found, using current branch"
     fi
     
     # Uninstall previous installation if exists
@@ -205,28 +257,104 @@ build_from_source() {
     
     # Autoconf setup
     print_status $BLUE "Running autoconf..."
-    autoconf
+    if ! autoconf; then
+        print_status $RED "Error: autoconf failed"
+        cd "$PROJECT_ROOT"
+        exit 1
+    fi
     
     # Configure
     print_status $BLUE "Configuring build..."
-    ./configure --prefix=/usr/local
+    if [[ "$LOCAL_INSTALL" == true ]]; then
+        VERILATOR_INSTALL_PREFIX="$PROJECT_ROOT/tools/verilator-install"
+        mkdir -p "$VERILATOR_INSTALL_PREFIX"
+        print_status $BLUE "Installing to local directory: $VERILATOR_INSTALL_PREFIX"
+    fi
+    
+    if ! ./configure --prefix="$VERILATOR_INSTALL_PREFIX"; then
+        print_status $RED "Error: configure failed"
+        cd "$PROJECT_ROOT"
+        exit 1
+    fi
     
     # Build
     print_status $BLUE "Building Verilator (this may take several minutes)..."
-    make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+    local num_cores=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+    
+    # Check if help2man is available (needed for man pages, but not critical)
+    local has_help2man=false
+    if command_exists help2man; then
+        has_help2man=true
+    else
+        print_status $YELLOW "Warning: help2man not found - man pages will not be generated"
+    fi
+    
+    # Build - if help2man is missing, the build may fail on man page generation
+    # but the verilator binary should still be built
+    set +e  # Temporarily disable exit on error for build
+    make -j"$num_cores"
+    local make_exit_code=$?
+    set -e  # Re-enable exit on error
+    
+    # Check if verilator binary was built (even if man page generation failed)
+    if [[ ! -f "bin/verilator" ]] && [[ ! -f "bin/verilator_bin" ]]; then
+        print_status $RED "Error: Build failed - verilator binary not found"
+        if [[ "$has_help2man" == false ]]; then
+            print_status $YELLOW "Note: help2man is missing. Install it with: sudo apt-get install help2man"
+        fi
+        cd "$PROJECT_ROOT"
+        exit 1
+    fi
+    
+    # Build succeeded (even if man page generation failed)
+    if [[ $make_exit_code -ne 0 ]] && [[ "$has_help2man" == false ]]; then
+        print_status $YELLOW "Build completed (verilator binary built, man pages skipped due to missing help2man)"
+    elif [[ $make_exit_code -eq 0 ]]; then
+        print_status $GREEN "Build completed successfully"
+    fi
     
     # Install
-    print_status $BLUE "Installing Verilator (requires sudo)..."
-    sudo make install
+    if [[ "$LOCAL_INSTALL" == true ]]; then
+        print_status $BLUE "Installing Verilator to local directory..."
+        if ! make install; then
+            print_status $RED "Error: Installation failed"
+            cd "$PROJECT_ROOT"
+            exit 1
+        fi
+        print_status $GREEN "Verilator installed to: $VERILATOR_INSTALL_PREFIX"
+        print_status $YELLOW "Add to PATH: export PATH=\"$VERILATOR_INSTALL_PREFIX/bin:\$PATH\""
+    else
+        print_status $BLUE "Installing Verilator (requires sudo)..."
+        if ! sudo make install; then
+            print_status $RED "Error: Installation failed"
+            cd "$PROJECT_ROOT"
+            exit 1
+        fi
+    fi
     
     # Verify installation
-    if command_exists verilator; then
-        local version=$(verilator --version 2>&1 | head -1 || echo "unknown")
-        print_status $GREEN "Verilator installed successfully: $version"
+    if [[ "$LOCAL_INSTALL" == true ]]; then
+        # For local install, check the installed binary directly
+        if [[ -f "$VERILATOR_INSTALL_PREFIX/bin/verilator" ]]; then
+            local version=$("$VERILATOR_INSTALL_PREFIX/bin/verilator" --version 2>&1 | head -1 || echo "unknown")
+            print_status $GREEN "Verilator installed successfully: $version"
+            print_status $YELLOW "Note: Add to PATH: export PATH=\"$VERILATOR_INSTALL_PREFIX/bin:\$PATH\""
+        else
+            print_status $RED "Error: Verilator installation failed - binary not found"
+            cd "$PROJECT_ROOT"
+            exit 1
+        fi
     else
-        print_status $RED "Error: Verilator installation failed - command not found"
-        print_status $YELLOW "You may need to add /usr/local/bin to your PATH"
-        exit 1
+        # For system install, check if verilator is in PATH
+        if command_exists verilator; then
+            local version=$(verilator --version 2>&1 | head -1 || echo "unknown")
+            print_status $GREEN "Verilator installed successfully: $version"
+        else
+            print_status $RED "Error: Verilator installation failed - command not found"
+            print_status $YELLOW "You may need to add $VERILATOR_INSTALL_PREFIX/bin to your PATH"
+            cd "$PROJECT_ROOT"
+            exit 1
+        fi
     fi
     
     cd "$PROJECT_ROOT"
@@ -247,6 +375,18 @@ parse_args() {
             --source)
                 INSTALL_MODE="source"
                 shift
+                ;;
+            --force)
+                FORCE_REINSTALL=true
+                shift
+                ;;
+            --local)
+                LOCAL_INSTALL=true
+                shift
+                ;;
+            --prefix)
+                VERILATOR_INSTALL_PREFIX="$2"
+                shift 2
                 ;;
             --help|-h)
                 show_usage

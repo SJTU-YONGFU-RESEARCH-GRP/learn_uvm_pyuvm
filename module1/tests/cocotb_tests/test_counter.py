@@ -12,7 +12,6 @@ Demonstrates:
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import Timer, RisingEdge, FallingEdge
-from cocotb.binary import BinaryValue
 
 
 async def generate_clock(dut, period_ns=10):
@@ -66,7 +65,7 @@ async def test_counter_increment(dut):
     for expected_count in range(1, 11):
         await RisingEdge(dut.clk)
         await Timer(1, units="ns")  # Wait for combinational logic
-        actual_count = dut.count.value.integer
+        actual_count = int(dut.count.value)
         assert actual_count == expected_count, \
             f"Expected count {expected_count}, got {actual_count}"
 
@@ -90,10 +89,10 @@ async def test_counter_enable(dut):
     
     # Disable and check counter doesn't increment
     dut.enable.value = 0
-    count_before = dut.count.value.integer
+    count_before = int(dut.count.value)
     await RisingEdge(dut.clk)
     await Timer(1, units="ns")
-    count_after = dut.count.value.integer
+    count_after = int(dut.count.value)
     assert count_after == count_before, "Counter should not increment when disabled"
     
     # Re-enable and verify it continues
@@ -139,7 +138,7 @@ async def test_counter_overflow(dut):
     # - Wrapping counter: 254 -> 255 -> 0 (wraps on next increment)
     # - Saturating counter: 254 -> 255 -> 255 (saturates at max)
     # This test accepts both behaviors as valid
-    final_count = dut.count.value.integer
+    final_count = int(dut.count.value)
     assert final_count in [0, MAX_COUNT], \
         f"Counter should wrap to 0 or saturate at {MAX_COUNT}, got {final_count}"
 

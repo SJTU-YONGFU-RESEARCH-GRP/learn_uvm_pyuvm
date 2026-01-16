@@ -1,8 +1,8 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1767530490" />
-    <testcase name="test_signal_access_basic" classname="signal_access_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/signal_access/signal_access_example.py" lineno="11" time="0.0023267269134521484" sim_time_ns="21.0" ratio_time="9025.55425760836" />
-    <testcase name="test_signal_types" classname="signal_access_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/signal_access/signal_access_example.py" lineno="56" time="0.0010788440704345703" sim_time_ns="20.999999999999996" ratio_time="19465.278232044195" />
-    <testcase name="test_signal_properties" classname="signal_access_example" file="/data1/luwangzilu/yongfu/learn_uvm_pyuvm/module2/examples/signal_access/signal_access_example.py" lineno="88" time="0.0008273124694824219" sim_time_ns="11.0" ratio_time="13296.064553314121" />
+    <property name="random_seed" value="1768573682" />
+    <testcase name="test_signal_access_basic" classname="signal_access_example" file="/home/yongfu/proj/learn_uvm_pyuvm/module2/examples/signal_access/signal_access_example.py" lineno="11" time="0.001028299331665039" sim_time_ns="21.0" ratio_time="20422.06909343844" />
+    <testcase name="test_signal_types" classname="signal_access_example" file="/home/yongfu/proj/learn_uvm_pyuvm/module2/examples/signal_access/signal_access_example.py" lineno="56" time="0.0008447170257568359" sim_time_ns="20.999999999999996" ratio_time="24860.396274343773" />
+    <testcase name="test_signal_properties" classname="signal_access_example" file="/home/yongfu/proj/learn_uvm_pyuvm/module2/examples/signal_access/signal_access_example.py" lineno="88" time="0.0006618499755859375" sim_time_ns="11.0" ratio_time="16620.08069164265" />
   </testsuite>
 </testsuites>

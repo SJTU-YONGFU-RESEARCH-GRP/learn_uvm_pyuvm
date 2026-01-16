@@ -6,7 +6,6 @@ Comprehensive testbench for simple_register module.
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import Timer, RisingEdge, FallingEdge
-from cocotb.binary import BinaryValue
 
 
 async def reset_dut(dut, duration_ns=50, propagation_delay_ns=10):

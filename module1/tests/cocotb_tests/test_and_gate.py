@@ -12,7 +12,6 @@ Demonstrates:
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import Timer, RisingEdge
-from cocotb.binary import BinaryValue
 
 
 @cocotb.test()
@@ -73,7 +72,7 @@ async def test_and_gate_truth_table(dut):
         dut.b.value = b_val
         await Timer(10, units="ns")
         
-        actual_y = dut.y.value.integer
+        actual_y = int(dut.y.value)
         assert actual_y == expected_y, \
             f"Input (a={a_val}, b={b_val}): Expected {expected_y}, got {actual_y}"
 

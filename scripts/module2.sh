@@ -26,7 +26,7 @@ RUN_CLOCK_GENERATION=true
 RUN_TRIGGERS=true
 RUN_RESET_PATTERNS=true
 RUN_COMMON_PATTERNS=true
-RUN_COCOTB_TESTS=false
+RUN_COCOTB_TESTS=true
 USE_VENV=true
 SIMULATOR="verilator"
 
@@ -195,6 +195,9 @@ run_cocotb_tests() {
         print_status $RED "✗ Simple register tests failed"
         failed=$((failed + 1))
     fi
+
+    # Clean before shift register tests (different TOPLEVEL requires rebuild)
+    make clean > /dev/null 2>&1 || true
 
     # Run shift register tests
     print_status $BLUE "Running shift register tests..."

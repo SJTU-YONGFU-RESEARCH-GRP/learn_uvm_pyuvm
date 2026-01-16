@@ -1,0 +1,9 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1768569428" />
+    <testcase name="test_counter_reset" classname="test_counter" file="/home/yongfu/proj/learn_uvm_pyuvm/module1/tests/cocotb_tests/test_counter.py" lineno="35" time="0.0006182193756103516" sim_time_ns="30.0" ratio_time="48526.46355572696" />
+    <testcase name="test_counter_increment" classname="test_counter" file="/home/yongfu/proj/learn_uvm_pyuvm/module1/tests/cocotb_tests/test_counter.py" lineno="50" time="0.0005872249603271484" sim_time_ns="121.0" ratio_time="206053.9114900528" />
+    <testcase name="test_counter_enable" classname="test_counter" file="/home/yongfu/proj/learn_uvm_pyuvm/module1/tests/cocotb_tests/test_counter.py" lineno="73" time="0.0004107952117919922" sim_time_ns="51.0" ratio_time="124149.45095763204" />
+    <testcase name="test_counter_overflow" classname="test_counter" file="/home/yongfu/proj/learn_uvm_pyuvm/module1/tests/cocotb_tests/test_counter.py" lineno="105" time="0.008555889129638672" sim_time_ns="2571.0" ratio_time="300494.7774619629" />
+  </testsuite>
+</testsuites>

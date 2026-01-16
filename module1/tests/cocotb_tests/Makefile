@@ -8,7 +8,7 @@ SIM ?= verilator
 PYTHON_FILES = test_and_gate.py test_counter.py
 
 # Verilog files
-VERILOG_FILES = ../../dut/simple_gates/and_gate.v ../../dut/simple_gates/counter.v
+VERILOG_SOURCES = ../../dut/simple_gates/and_gate.v ../../dut/simple_gates/counter.v
 
 # Test to run
 TEST ?= test_and_gate
@@ -27,11 +27,5 @@ test_all:
 	$(MAKE) TEST=test_and_gate
 	$(MAKE) TEST=test_counter
 
-.PHONY: clean
-clean:
-	rm -rf __pycache__
-	rm -rf sim_build
-	rm -rf results.xml
-	rm -rf *.vcd
-	rm -rf *.log
+# Note: clean target is provided by included Makefile.sim
 
