@@ -1,7 +1,5 @@
 # Module 3: UVM Basics
 
-**Duration**: 2 weeks  
-**Complexity**: Beginner-Intermediate  
 **Goal**: Master UVM class hierarchy and phases
 
 ## Overview

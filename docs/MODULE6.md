@@ -1,7 +1,5 @@
 # Module 6: Complex Testbenches
 
-**Duration**: 2 weeks  
-**Complexity**: Advanced  
 **Goal**: Build complex multi-agent testbenches with protocol verification
 
 ## Overview

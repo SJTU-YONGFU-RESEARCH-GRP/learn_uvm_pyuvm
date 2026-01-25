@@ -1,7 +1,5 @@
 # Module 7: Real-World Applications
 
-**Duration**: 3 weeks  
-**Complexity**: Advanced  
 **Goal**: Apply UVM to real-world verification scenarios
 
 ## Overview

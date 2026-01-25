@@ -1,7 +1,5 @@
 # Module 5: Advanced UVM Concepts
 
-**Duration**: 3 weeks  
-**Complexity**: Intermediate-Advanced  
 **Goal**: Master sequences, coverage, configuration, and virtual sequences
 
 ## Overview

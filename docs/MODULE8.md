@@ -1,7 +1,5 @@
 # Module 8: UVM Miscellaneous Utilities
 
-**Duration**: 2 weeks  
-**Complexity**: Intermediate-Advanced  
 **Goal**: Master UVM utility classes and helper functions
 
 ## Overview

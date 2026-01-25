@@ -1,7 +1,5 @@
 # Module 4: UVM Components
 
-**Duration**: 3 weeks  
-**Complexity**: Intermediate  
 **Goal**: Build complete UVM agents with driver, monitor, and sequencer
 
 ## Overview

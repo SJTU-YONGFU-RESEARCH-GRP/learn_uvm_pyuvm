@@ -1,7 +1,5 @@
 # Module 2: cocotb Fundamentals
 
-**Duration**: 2 weeks  
-**Complexity**: Beginner-Intermediate  
 **Goal**: Master cocotb for hardware verification
 
 ## Overview

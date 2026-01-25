@@ -1,7 +1,5 @@
 # Module 1: Python and Verification Basics
 
-**Duration**: 2 weeks  
-**Complexity**: Beginner  
 **Goal**: Understand Python for verification and verification fundamentals
 
 ## Overview

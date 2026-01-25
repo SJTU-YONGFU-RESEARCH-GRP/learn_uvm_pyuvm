@@ -1,7 +1,5 @@
 # Module 0: Installation and Setup
 
-**Duration**: 1 week  
-**Complexity**: Beginner  
 **Goal**: Set up development environment and verify installation
 
 ## Overview
